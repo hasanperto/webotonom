@@ -1,0 +1,5 @@
+# Release paketleri (scripts/build-release.ps1 ciktisi)
+/dist/
+
+# Artefakt zip (repoda gereksiz)
+frontend/dist.zip

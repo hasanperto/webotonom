@@ -1,0 +1,323 @@
+.admin-accounting-approved-invoices-page {
+    padding: 1.5rem;
+    max-width: 1600px;
+    margin: 0 auto;
+    min-height: 60vh;
+}
+
+.admin-header-advanced {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 2px solid var(--border-color, #e5e7eb);
+}
+
+.page-title-advanced {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--text-color, #1a1a1a);
+    margin: 0 0 0.5rem 0;
+    letter-spacing: -0.5px;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.page-subtitle-advanced {
+    font-size: 1rem;
+    color: var(--text-secondary, #6b7280);
+    margin: 0;
+}
+
+.header-actions {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.btn-refresh {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.625rem 1.25rem;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-refresh:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+.invoice-filters-minimal {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.search-box-minimal {
+    position: relative;
+    flex: 1;
+}
+
+.search-box-minimal input {
+    width: 100%;
+    padding: 0.875rem 1rem 0.875rem 3rem;
+    border: 2px solid var(--border-color, #e5e7eb);
+    border-radius: 12px;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    background: white;
+}
+
+.search-box-minimal input:focus {
+    outline: none;
+    border-color: #10b981;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+.search-icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-secondary, #6b7280);
+    font-size: 1.1rem;
+}
+
+.status-filter-minimal {
+    padding: 0.875rem 1rem;
+    border: 2px solid var(--border-color, #e5e7eb);
+    border-radius: 12px;
+    font-size: 0.95rem;
+    background: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.status-filter-minimal:focus {
+    outline: none;
+    border-color: #10b981;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+.invoices-list-minimal {
+    display: grid;
+    gap: 1rem;
+}
+
+.invoice-card-minimal {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.25rem;
+    background: white;
+    border: 2px solid var(--border-color, #e5e7eb);
+    border-radius: 12px;
+    transition: all 0.3s ease;
+}
+
+.invoice-card-minimal:hover {
+    border-color: #10b981;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.1);
+    transform: translateY(-2px);
+}
+
+.invoice-info-section {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    flex: 1;
+}
+
+.invoice-number-minimal h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-color, #1a1a1a);
+    margin: 0 0 0.25rem 0;
+}
+
+.invoice-user {
+    font-size: 0.9rem;
+    color: var(--text-secondary, #6b7280);
+    margin: 0;
+}
+
+.invoice-details-minimal {
+    flex: 1;
+}
+
+.invoice-amount {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.amount-label {
+    font-size: 0.9rem;
+    color: var(--text-secondary, #6b7280);
+}
+
+.amount-value {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #10b981;
+}
+
+.invoice-meta-minimal {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.invoice-status-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.invoice-status-badge.paid {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.invoice-status-badge.overdue {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.invoice-status-badge.sent {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.85rem;
+    color: var(--text-secondary, #6b7280);
+}
+
+.invoice-actions-minimal {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.btn-view-minimal,
+.btn-download-minimal {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.625rem 1.25rem;
+    border: none;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-view-minimal {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.btn-download-minimal {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+}
+
+.btn-view-minimal:hover {
+    background: #1e40af;
+    color: white;
+    transform: translateY(-2px);
+}
+
+.btn-download-minimal:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+.empty-state-minimal {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: white;
+    border: 2px dashed var(--border-color, #e5e7eb);
+    border-radius: 12px;
+}
+
+.empty-icon {
+    font-size: 4rem;
+    color: var(--text-secondary, #6b7280);
+    margin-bottom: 1rem;
+}
+
+.empty-state-minimal h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-color, #1a1a1a);
+    margin: 0 0 0.5rem 0;
+}
+
+.empty-state-minimal p {
+    font-size: 1rem;
+    color: var(--text-secondary, #6b7280);
+    margin: 0;
+}
+
+.loading-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 400px;
+}
+
+.spinner-large {
+    width: 48px;
+    height: 48px;
+    border: 4px solid var(--border-color, #e5e7eb);
+    border-top-color: #10b981;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+@media (max-width: 768px) {
+    .invoice-filters-minimal {
+        flex-direction: column;
+    }
+
+    .invoice-card-minimal {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .invoice-actions-minimal {
+        width: 100%;
+        flex-wrap: wrap;
+    }
+
+    .btn-view-minimal,
+    .btn-download-minimal {
+        flex: 1;
+        justify-content: center;
+        min-width: 120px;
+    }
+}
+

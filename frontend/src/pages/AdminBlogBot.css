@@ -1,0 +1,248 @@
+.admin-blog-bot-page .bot-title-icon {
+    vertical-align: middle;
+    margin-right: 0.35rem;
+    color: #f59e0b;
+}
+
+.bot-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin: 1rem 0 1.25rem;
+}
+
+.bot-pagination button {
+    padding: 0.5rem 1rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: #fff;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.bot-pagination button:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.bot-pagination span {
+    font-weight: 600;
+    color: #374151;
+}
+
+.bot-error-banner {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    color: #b91c1c;
+    font-size: 0.9rem;
+}
+
+.bot-posts-grid .bot-card {
+    display: flex;
+    flex-direction: column;
+}
+
+.bot-card--exists {
+    opacity: 0.85;
+    border-color: #86efac;
+}
+
+.bot-card-thumb {
+    margin: -1.5rem -1.5rem 1rem;
+    border-radius: 12px 12px 0 0;
+    overflow: hidden;
+    max-height: 180px;
+}
+
+.bot-card-thumb img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    display: block;
+}
+
+.bot-date {
+    font-size: 0.8rem;
+    color: #9ca3af;
+    margin: 0;
+}
+
+.bot-card-actions {
+    justify-content: space-between;
+    align-items: center;
+}
+
+.bot-add-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+}
+
+.bot-add-btn.disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.btn-bot {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    border: 1px solid #f59e0b;
+    background: #fffbeb;
+    color: #b45309;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.btn-bot:hover {
+    background: #fef3c7;
+}
+
+.bot-filters {
+    margin-bottom: 1rem;
+}
+
+.bot-filters-label {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 0.5rem;
+}
+
+.bot-category-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.bot-chip {
+    padding: 0.35rem 0.75rem;
+    border-radius: 999px;
+    border: 1px solid #e5e7eb;
+    background: #fff;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.bot-chip:hover {
+    border-color: #f59e0b;
+}
+
+.bot-chip.active {
+    background: #fffbeb;
+    border-color: #f59e0b;
+    color: #b45309;
+    font-weight: 600;
+}
+
+.bot-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem 1rem;
+    margin-bottom: 1rem;
+    padding: 0.75rem 1rem;
+    background: #f9fafb;
+    border-radius: 10px;
+    border: 1px solid #e5e7eb;
+}
+
+.bot-toolbar-label,
+.bot-status-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #374151;
+}
+
+.bot-status-opt {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.35rem 0.75rem;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    cursor: pointer;
+    font-size: 0.85rem;
+    background: #fff;
+}
+
+.bot-status-opt.active {
+    border-color: #f59e0b;
+    background: #fffbeb;
+    color: #b45309;
+}
+
+.bot-status-opt input {
+    accent-color: #f59e0b;
+}
+
+.bot-bulk-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.bot-select-all {
+    font-size: 0.85rem;
+}
+
+.bot-card {
+    position: relative;
+}
+
+.bot-card--selected {
+    border-color: #f59e0b;
+    box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.25);
+}
+
+.bot-checkbox {
+    position: absolute;
+    top: 0.75rem;
+    left: 0.75rem;
+    z-index: 2;
+    background: #fff;
+    border-radius: 4px;
+    padding: 2px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+}
+
+.bot-checkbox input {
+    width: 18px;
+    height: 18px;
+    accent-color: #f59e0b;
+    cursor: pointer;
+}
+
+.bot-card-thumb {
+    padding-left: 2rem;
+}
+
+.bot-source-cat {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #b45309;
+    background: #fffbeb;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    margin-bottom: 0.5rem;
+}

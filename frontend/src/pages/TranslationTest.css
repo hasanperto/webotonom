@@ -1,0 +1,314 @@
+.translation-test-page {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 2rem 0;
+}
+
+.translation-test-page .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+.test-header {
+    text-align: center;
+    color: white;
+    margin-bottom: 2rem;
+}
+
+.test-header h1 {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+}
+
+.test-header p {
+    font-size: 1.1rem;
+    opacity: 0.9;
+}
+
+.test-content {
+    background: white;
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+
+/* Dil Seçici */
+.language-selector {
+    display: flex;
+    align-items: flex-end;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+}
+
+.lang-group {
+    flex: 1;
+    min-width: 200px;
+}
+
+.lang-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #333;
+}
+
+.lang-select {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    font-size: 1rem;
+    background: white;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.lang-select:hover {
+    border-color: #667eea;
+}
+
+.lang-select:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
+}
+
+.swap-btn {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 2px solid #667eea;
+    background: white;
+    color: #667eea;
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 0.5rem;
+}
+
+.swap-btn:hover {
+    background: #667eea;
+    color: white;
+    transform: rotate(180deg);
+}
+
+/* Metin Girişi */
+.text-input-section,
+.text-output-section {
+    margin-bottom: 1.5rem;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.section-header label {
+    font-weight: 600;
+    color: #333;
+    font-size: 1.1rem;
+}
+
+.btn-example,
+.btn-copy {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 8px;
+    background: #667eea;
+    color: white;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-example:hover,
+.btn-copy:hover {
+    background: #5568d3;
+    transform: translateY(-2px);
+}
+
+.text-input {
+    width: 100%;
+    padding: 1rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-family: inherit;
+    resize: vertical;
+    transition: all 0.3s;
+    position: relative;
+}
+
+.text-input:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
+}
+
+.text-output {
+    width: 100%;
+    padding: 1rem;
+    border: 2px solid #10b981;
+    border-radius: 12px;
+    font-size: 1rem;
+    background: #f0fdf4;
+    color: #065f46;
+    min-height: 150px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+/* Çeviri Butonu */
+.translate-action {
+    text-align: center;
+    margin: 2rem 0;
+}
+
+.btn-translate {
+    padding: 1rem 3rem;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    box-shadow: 0 4px 15px rgba(102,126,234,0.4);
+}
+
+.btn-translate:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102,126,234,0.5);
+}
+
+.btn-translate:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.spinning {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Alert Mesajları */
+.alert {
+    padding: 1rem;
+    border-radius: 12px;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.alert-error {
+    background: #fef2f2;
+    border: 2px solid #ef4444;
+    color: #991b1b;
+}
+
+.alert-info {
+    background: #eff6ff;
+    border: 2px solid #3b82f6;
+    color: #1e40af;
+}
+
+/* HTML Test Bölümü */
+.html-test-section {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background: #f9fafb;
+    border-radius: 12px;
+    border: 2px dashed #e0e0e0;
+}
+
+.html-test-section h3 {
+    margin-bottom: 0.5rem;
+    color: #333;
+}
+
+.html-test-section p {
+    color: #666;
+    margin-bottom: 1rem;
+}
+
+/* API Durumu */
+.api-status {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background: #f0f9ff;
+    border-radius: 12px;
+    border: 2px solid #0ea5e9;
+}
+
+.api-status h3 {
+    margin-bottom: 1rem;
+    color: #0c4a6e;
+}
+
+.status-info p {
+    margin: 0.5rem 0;
+    color: #075985;
+}
+
+.status-info .note {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #bae6fd;
+    color: #64748b;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .test-header h1 {
+        font-size: 1.8rem;
+        flex-direction: column;
+    }
+
+    .language-selector {
+        flex-direction: column;
+    }
+
+    .swap-btn {
+        align-self: center;
+        transform: rotate(90deg);
+    }
+
+    .swap-btn:hover {
+        transform: rotate(270deg);
+    }
+
+    .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .btn-translate {
+        width: 100%;
+        justify-content: center;
+    }
+}
+

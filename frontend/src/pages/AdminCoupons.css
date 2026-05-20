@@ -1,0 +1,140 @@
+.admin-coupons-page {
+    padding: 1.5rem;
+    max-width: 1600px;
+    margin: 0 auto;
+}
+
+.coupons-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.coupon-card-minimal {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    transition: all 0.3s;
+    border: 1px solid #e5e7eb;
+    position: relative;
+}
+
+.coupon-card-minimal:hover {
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+    transform: translateY(-2px);
+}
+
+.coupon-card-minimal.expired {
+    opacity: 0.7;
+    border-color: #fee2e2;
+}
+
+.coupon-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.coupon-code {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #696cff;
+}
+
+.coupon-badges {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.badge-danger {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.coupon-body {
+    margin-bottom: 1rem;
+}
+
+.coupon-discount {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    padding: 1rem;
+    background: linear-gradient(135deg, #696cff 0%, #5a5fef 100%);
+    border-radius: 8px;
+    color: white;
+}
+
+.coupon-discount svg {
+    font-size: 1.5rem;
+}
+
+.coupon-discount strong {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.coupon-discount span {
+    font-size: 0.875rem;
+    opacity: 0.9;
+}
+
+.coupon-description {
+    color: #6b7280;
+    font-size: 0.9rem;
+    margin: 0.5rem 0;
+}
+
+.coupon-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+}
+
+.meta-item {
+    display: flex;
+    justify-content: space-between;
+    color: #9ca3af;
+}
+
+.meta-item strong {
+    color: #374151;
+    font-weight: 600;
+}
+
+.coupon-actions {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+    padding-top: 1rem;
+    border-top: 1px solid #e5e7eb;
+}
+
+.modal-body textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-family: inherit;
+    resize: vertical;
+    transition: all 0.2s;
+}
+
+.modal-body textarea:focus {
+    outline: none;
+    border-color: #696cff;
+    box-shadow: 0 0 0 3px rgba(105, 108, 255, 0.1);
+}
+

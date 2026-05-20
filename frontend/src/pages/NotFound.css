@@ -1,0 +1,136 @@
+.notfound-page {
+    min-height: 130vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 2rem 20vh;
+    background: var(--bg-color);
+    position: relative;
+    overflow-x: hidden;
+}
+
+.notfound-parallax {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.notfound-parallax--far {
+    width: min(90vw, 520px);
+    height: min(90vw, 520px);
+    top: -8%;
+    left: -12%;
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.22) 0%, transparent 70%);
+}
+
+.notfound-parallax--mid {
+    width: min(70vw, 380px);
+    height: min(70vw, 380px);
+    bottom: 5%;
+    right: -10%;
+    background: radial-gradient(circle, rgba(139, 92, 246, 0.18) 0%, transparent 68%);
+}
+
+.notfound-parallax--near {
+    width: min(50vw, 240px);
+    height: min(50vw, 240px);
+    top: 38%;
+    right: 8%;
+    background: radial-gradient(circle, rgba(59, 130, 246, 0.14) 0%, transparent 65%);
+}
+
+.notfound-mega-wrap {
+    position: absolute;
+    left: 50%;
+    top: 42%;
+    transform: translate(-50%, -50%);
+    z-index: 0;
+    pointer-events: none;
+}
+
+.notfound-mega {
+    font-size: clamp(6rem, 28vw, 14rem);
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.06em;
+    color: var(--primary);
+    opacity: 0.08;
+    user-select: none;
+    white-space: nowrap;
+}
+
+.notfound-inner {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.notfound-card {
+    width: 100%;
+    max-width: 560px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 2rem;
+    text-align: center;
+    box-shadow: var(--card-shadow);
+    backdrop-filter: blur(8px);
+}
+
+.notfound-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+    background: rgba(105, 108, 255, 0.12);
+    color: var(--primary);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+}
+
+.notfound-card h1 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.6rem;
+}
+
+.notfound-path {
+    margin: 0 0 1.25rem 0;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+}
+
+.notfound-path code {
+    background: var(--bg-secondary);
+    padding: 0.15rem 0.4rem;
+    border-radius: 8px;
+}
+
+.notfound-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.8rem 1.1rem;
+    border-radius: 12px;
+    background: var(--primary);
+    color: #fff;
+    text-decoration: none;
+    font-weight: 700;
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.notfound-btn:hover {
+    background: var(--primary-hover);
+    transform: translateY(-1px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .notfound-btn:hover {
+        transform: none;
+    }
+}

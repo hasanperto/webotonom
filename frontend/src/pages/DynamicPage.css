@@ -1,0 +1,97 @@
+.dynamic-page {
+    width: 100%;
+    padding: 32px 16px;
+}
+
+.dynamic-page__container {
+    max-width: 980px;
+    margin: 0 auto;
+}
+
+.dynamic-page__title {
+    margin: 0 0 16px;
+    font-size: 34px;
+    letter-spacing: -0.02em;
+}
+
+.dynamic-page__loading,
+.dynamic-page__error {
+    padding: 18px 16px;
+    border-radius: 12px;
+    background: rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="dark"] .dynamic-page__loading,
+[data-theme="dark"] .dynamic-page__error {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.dynamic-page__content {
+    line-height: 1.75;
+    font-size: 16px;
+}
+
+.dynamic-page__content img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 12px;
+}
+
+.dynamic-page__content a {
+    color: inherit;
+    text-decoration: underline;
+}
+
+/* Sayfa içeriği stilleri */
+.dynamic-page__content .page-content {
+    line-height: 1.8;
+}
+
+.dynamic-page__content .page-content h2 {
+    font-size: 28px;
+    font-weight: 700;
+    margin: 32px 0 16px;
+    color: inherit;
+}
+
+.dynamic-page__content .page-content h3 {
+    font-size: 22px;
+    font-weight: 600;
+    margin: 24px 0 12px;
+    color: inherit;
+}
+
+.dynamic-page__content .page-content p {
+    margin: 0 0 16px;
+    color: inherit;
+    opacity: 0.9;
+}
+
+.dynamic-page__content .page-content ul,
+.dynamic-page__content .page-content ol {
+    margin: 16px 0;
+    padding-left: 24px;
+}
+
+.dynamic-page__content .page-content li {
+    margin: 8px 0;
+    line-height: 1.7;
+}
+
+.dynamic-page__content .page-content strong {
+    font-weight: 600;
+    color: inherit;
+}
+
+.dynamic-page__content .page-content ul li::marker {
+    color: var(--primary-color, #007bff);
+}
+
+[data-theme="dark"] .dynamic-page__content .page-content {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+[data-theme="dark"] .dynamic-page__content .page-content p {
+    opacity: 0.85;
+}
+
