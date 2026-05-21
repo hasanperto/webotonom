@@ -4,25 +4,25 @@ Canlıda eski sürüm çalışırken güvenli güncelleme akışı. Proje yapıs
 
 ## 0. Bilmen gerekenler (önce kontrol et)
 
-- **Site kök dizini:** aaPanel → **Website** → `webotonom.de` — genelde `/www/wwwroot/webotonom.de` veya senin seçtiğin yol. Aşağıda `PROJE_KOK` yazan yere bunu koy.
-- **Node nasıl çalışıyor:** aaPanel **App Store** → **PM2 Manager** veya **Node.js** projesi olabilir. Güncelleme sonunda **aynı PM2 adıyla** yeniden başlatacaksın.
-- **MySQL:** aaPanel → **Database** — yedek buradan da alınabilir.
-- **Git:** Sunucuda `git clone` ile kurulduysa `git pull` kullanılır. Kurulmadıysa dosya sonundaki “Git yok” bölümüne bak.
+- **Site kök dizini:** aaPanel → **Website** → `webotonom.de` — genelde `/www/wwwroot/webotonom.de`. Aşağıda `PROJE_KOK` = bu yol.
+- **PM2 süreç adı:** `pm2 list` ile bak (`webotonom`, `tekno` vb.). Komutlarda kendi adını kullan.
+- **MySQL:** aaPanel → **Database** — yedek buradan alınır.
+- **Git:** `git clone` ile kurulduysa `git pull`. Kurulmadıysa → [Git yok](#sunucuda-git-yoksa).
 
 ---
 
 ## 1. Yedek (zorunlu)
 
-1. aaPanel → **Files** ile `PROJE_KOK` içinden en az **`backend/.env`** ve **`backend/public/uploads`** yedeğini al (tüm klasör zip’i de olur).
-2. aaPanel → **Database** → site veritabanı → **Backup** / dışa aktar (`.sql`).
+1. aaPanel → **Files** → `PROJE_KOK` içinden **`backend/.env`** ve **`backend/public/uploads`** yedeği (veya tüm klasör zip).
+2. aaPanel → **Database** → site DB → **Backup** (`.sql`).
 
-Kısa kesinti yaşanabilir; mümkünse düşük trafik saatinde yap.
+Düşük trafik saatinde yap; site birkaç dakika kapalı kalabilir.
 
 ---
 
 ## 2. Node sürümü
 
-aaPanel → **App Store** → **Node.js** — **20 veya 22 LTS** olsun. Terminal:
+aaPanel → **App Store** → **Node.js** — **20 veya 22 LTS**.
 
 ```bash
 node -v
@@ -30,15 +30,44 @@ node -v
 
 ---
 
-## 3. Güncelleme — Terminal (aaPanel → Terminal veya SSH)
+## 3. Güncelleme (önerilen — tek script)
 
 `PROJE_KOK` örnek: `/www/wwwroot/webotonom.de`
 
 ```bash
-cd PROJE_KOK
+cd /www/wwwroot/webotonom.de
+chmod +x deploy/scripts/sunucu-guncelle.sh
+./deploy/scripts/sunucu-guncelle.sh .
+```
+
+Script: PM2 durdur → `git pull` → frontend `npm ci` + `build` → backend `npm ci` + `sunucu-hazirlik.js` → PM2 restart → `/api/health` testi.
+
+**`.env` dokunma** (silinmediyse). Yoksa yedekten geri koy; örnek: `deploy/.env.production.example`.
+
+| Değişken | Değer |
+|----------|--------|
+| `NODE_ENV` | `production` |
+| `FRONTEND_URL` | `https://webotonom.de` |
+| `CORS_ORIGIN` | `https://webotonom.de,https://www.webotonom.de` |
+
+`uploads` izinleri (gerekirse):
+
+```bash
+cd /www/wwwroot/webotonom.de/backend
+mkdir -p public/uploads
+chown -R www:www public/uploads
+chmod -R 775 public/uploads
+```
+
+---
+
+## 4. Güncelleme — manuel adımlar
+
+```bash
+cd /www/wwwroot/webotonom.de
 
 pm2 list
-pm2 stop webotonom    # listedeki gerçek isim (sende farklı olabilir)
+pm2 stop webotonom          # kendi PM2 adın
 
 git pull origin main
 
@@ -47,79 +76,92 @@ npm ci --legacy-peer-deps
 npm run build
 cd ../backend
 npm ci --omit=dev
+NODE_ENV=production node scripts/sunucu-hazirlik.js
 
-mkdir -p public/uploads
-chown -R www:www public/uploads
-chmod -R 775 public/uploads
-```
-
-**.env** (silinmediyse dokunma; yoksa yedekten geri koy):
-
-- `NODE_ENV=production`
-- `FRONTEND_URL=https://webotonom.de`
-- `CORS_ORIGIN=https://webotonom.de,https://www.webotonom.de` (www kullanıyorsan ekle)
-
-```bash
-cd PROJE_KOK/backend
-NODE_ENV=production pm2 restart webotonom
+pm2 restart webotonom
 pm2 save
 ```
 
+**Önemli:** `npm run build` sonrası `frontend/dist` tamamen yenilenmeli. Eski `vendor-*.js` ile yeni `index.html` karışırsa konsolda `unstable_now` hatası çıkar — mutlaka build bitene kadar bekle, sonra tarayıcıda **Ctrl+F5** (önbellek temizle).
+
 ---
 
-## 4. aaPanel PM2 Manager (grafik)
+## 5. aaPanel PM2 Manager (grafik)
 
-1. **App Store** → **PM2 Manager** → site sürecini bul.
+1. **App Store** → **PM2 Manager** → süreci bul.
 2. Güncellemeden önce **Stop**.
-3. Terminal’de `git pull` + `npm ci` + `npm run build` bitirince **Restart**.
+3. Terminal’de `git pull` + build + `sunucu-hazirlik.js` bitince **Restart**.
 
-Çalışma dizini **`backend`**, başlatılan dosya **`server.js`** olmalı.
+Çalışma dizini: **`backend`**. Başlatılan dosya: **`server.js`**.
 
 ---
 
-## 5. Nginx
+## 6. Nginx
 
-Genelde değiştirme. **Website** → `webotonom.de` → **Config** — `proxy_pass` Node portuna (ör. `127.0.0.1:5000`) gitsin.
-
-Test:
+Genelde değiştirme. **Website** → `webotonom.de` → **Config** — `proxy_pass` → `127.0.0.1:5000` (veya `.env` içindeki `PORT`).
 
 ```bash
 curl -sS https://webotonom.de/api/health
 ```
 
+`"database":"connected"` beklenir.
+
 ---
 
-## 6. Veritabanı (yeni SQL / odeme tabloları)
+## 7. Veritabanı (yeni SQL / ödeme tabloları)
+
+Güncelleme scripti bunu zaten çalıştırır. Sadece DB migration gerekiyorsa:
 
 ```bash
-cd PROJE_KOK/backend
+cd /www/wwwroot/webotonom.de/backend
 NODE_ENV=production node scripts/sunucu-hazirlik.js
 ```
 
-Veya tam guncelleme scripti:
-
-```bash
-./deploy/scripts/sunucu-guncelle.sh PROJE_KOK
-```
-
-Yeni çeviri SQL dosyaları için önce DB yedeği; sonra phpMyAdmin.
+Yeni çeviri SQL dosyaları: önce DB yedeği, sonra phpMyAdmin.
 
 ---
 
 ## Sunucuda Git yoksa
 
-1. Yerelde `.\scripts\build-release.ps1` → zip.
-2. aaPanel **Files** ile zip’i aç; **`backend/.env`** ve **`uploads`** içeriğini ezme (dikkatli seç).
-3. `backend` içinde `npm ci --omit=dev`, sonra PM2 restart.
+1. Yerelde: `.\scripts\build-release.ps1` → zip.
+2. aaPanel **Files** ile aç; **`backend/.env`** ve **`uploads`** üzerine yazma.
+3. Sunucuda:
+
+```bash
+cd PROJE_KOK/backend
+npm ci --omit=dev
+NODE_ENV=production node scripts/sunucu-hazirlik.js
+pm2 restart webotonom
+```
 
 ---
 
-## Hızlı özet
+## Hızlı özet (kopyala-yapıştır)
 
 ```bash
-cd /www/wwwroot/webotonom.de    # senin gerçek yol
+cd /www/wwwroot/webotonom.de
+./deploy/scripts/sunucu-guncelle.sh .
+```
+
+Manuel:
+
+```bash
+cd /www/wwwroot/webotonom.de
 pm2 stop webotonom
 git pull origin main
-cd frontend && npm ci --legacy-peer-deps && npm run build && cd ../backend && npm ci --omit=dev
-NODE_ENV=production pm2 restart webotonom
+cd frontend && npm ci --legacy-peer-deps && npm run build
+cd ../backend && npm ci --omit=dev && NODE_ENV=production node scripts/sunucu-hazirlik.js
+pm2 restart webotonom && pm2 save
+curl -sS https://webotonom.de/api/health
 ```
+
+---
+
+## Sorun giderme
+
+| Belirti | Çözüm |
+|---------|--------|
+| `unstable_now` / boş sayfa | `git pull`, `frontend` içinde `npm run build`, Ctrl+F5 |
+| 502 Bad Gateway | `pm2 list`, `pm2 logs webotonom --lines 50` |
+| DB hatası | `backend/.env` DB bilgileri, `sunucu-hazirlik.js` |
+| Eski arayüz | Build bitmedi veya CDN/tarayıcı önbelleği |
