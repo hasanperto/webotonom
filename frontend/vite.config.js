@@ -11,7 +11,16 @@ export default defineConfig({
           if (!id.includes('node_modules')) return;
           if (id.includes('framer-motion')) return 'motion';
           if (id.includes('@tiptap') || id.includes('prosemirror')) return 'editor';
-          if (id.includes('react-dom') || id.includes('react-router')) return 'react-vendor';
+          // react + react-dom + scheduler ayni chunk'ta olmali (ayri vendor = unstable_now hatasi)
+          if (
+            /[/\\]react[/\\]/.test(id) ||
+            /[/\\]react-dom[/\\]/.test(id) ||
+            /[/\\]scheduler[/\\]/.test(id) ||
+            id.includes('react-router') ||
+            id.includes('use-sync-external-store')
+          ) {
+            return 'react-vendor';
+          }
           return 'vendor';
         },
       },
