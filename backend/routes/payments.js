@@ -5,6 +5,61 @@ import paymentService from '../services/paymentService.js';
 
 const router = express.Router();
 
+const CHECKOUT_METHODS = [
+    { id: 'credit_card', settingKey: 'credit_card_enabled', defaultEnabled: true },
+    { id: 'paypal', settingKey: 'paypal_enabled', defaultEnabled: true },
+    { id: 'bank_transfer', settingKey: 'bank_transfer_enabled', defaultEnabled: true },
+    { id: 'balance', settingKey: 'balance_enabled', defaultEnabled: true },
+];
+
+/** Checkout: aktif ödeme yöntemleri (herkese açık) */
+router.get('/methods', async (req, res) => {
+    try {
+        const settings = await paymentService.loadPaymentSettings() || {};
+        const demoMode = settings.payment_demo_mode !== false
+            && settings.payment_demo_mode !== '0'
+            && settings.payment_demo_mode !== 'false';
+
+        const methods = CHECKOUT_METHODS.map((m) => {
+            const raw = settings[m.settingKey];
+            const enabled = raw === undefined || raw === null || raw === ''
+                ? m.defaultEnabled
+                : raw === true || raw === '1' || raw === 'true';
+
+            let gateway = 'demo';
+            if (m.id === 'credit_card') {
+                if (settings.stripe_enabled && settings.stripe_secret_key) gateway = 'stripe';
+                else if (settings.iyzico_enabled && settings.iyzico_api_key) gateway = 'iyzico';
+                else if (demoMode) gateway = 'demo';
+            } else if (m.id === 'paypal') {
+                gateway = settings.paypal_enabled && settings.paypal_client_id ? 'paypal' : (demoMode ? 'demo' : 'disabled');
+            } else if (m.id === 'bank_transfer') {
+                gateway = 'manual';
+            } else if (m.id === 'balance') {
+                gateway = 'balance';
+            }
+
+            return {
+                id: m.id,
+                enabled: m.id === 'paypal' && gateway === 'disabled' ? false : enabled,
+                gateway,
+                demo_mode: demoMode && gateway === 'demo',
+            };
+        }).filter((m) => m.enabled);
+
+        const demo_hints = demoMode ? paymentService.getDemoHints() : null;
+
+        res.json({ methods, demo_mode: demoMode, demo_hints });
+    } catch (error) {
+        console.error('Get payment methods error:', error);
+        res.json({
+            methods: CHECKOUT_METHODS.map((m) => ({ id: m.id, enabled: true, gateway: 'demo', demo_mode: true })),
+            demo_mode: true,
+            demo_hints: paymentService.getDemoHints(),
+        });
+    }
+});
+
 // Ödeme işlemi başlat (Stripe/Iyzico için hazırlık)
 router.post('/process', authenticate, async (req, res) => {
     try {
@@ -151,8 +206,7 @@ router.post('/process', authenticate, async (req, res) => {
             const stripeResult = await paymentService.processStripePayment(
                 parseFloat(order.final_amount),
                 order.currency || 'TRY',
-                payment_data || {},
-                { order_id: order_id, user_id: userId }
+                payment_data || {}
             );
             
             if (stripeResult.success) {

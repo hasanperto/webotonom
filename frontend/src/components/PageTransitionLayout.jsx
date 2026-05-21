@@ -8,6 +8,18 @@ import { motionEase } from '../utils/motion';
 export default function PageTransitionLayout() {
     const location = useLocation();
     const reduceMotion = useReducedMotion();
+    const isPanelRoute =
+        location.pathname.startsWith('/admin') ||
+        location.pathname.startsWith('/seller') ||
+        location.pathname.startsWith('/user');
+
+    if (isPanelRoute || reduceMotion) {
+        return (
+            <div className="page-transition-root" style={{ width: '100%' }}>
+                <Outlet />
+            </div>
+        );
+    }
 
     return (
         <AnimatePresence mode="wait" initial={false}>

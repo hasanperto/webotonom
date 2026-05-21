@@ -36,8 +36,9 @@ export async function importNewsBotArticle(userId, url, status = 'draft') {
         slug = `${slug}-${Date.now()}`;
     }
 
-    const contentHtml = await localizeContentImages(scraped.contentHtml);
-    const coverPath = (await downloadBlogCover(scraped.imageUrl)) || null;
+    const baseUrl = scraped.baseUrl || '';
+    const contentHtml = await localizeContentImages(scraped.contentHtml, baseUrl);
+    const coverPath = (await downloadBlogCover(scraped.imageUrl, baseUrl)) || null;
     const seo = buildSeoFields(normalizedTitle, scraped.excerpt);
     const categoryId = await findOrCreateCategoryId(pool, scraped.sourceCategory);
     const tagNames = buildTagNames(normalizedTitle, scraped.sourceCategory);

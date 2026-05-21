@@ -1,4 +1,5 @@
 import express from 'express';
+import compression from 'compression';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
@@ -97,6 +98,7 @@ const corsOptions = {
 
 // CORS middleware - TÜM isteklerden önce
 app.use(cors(corsOptions));
+app.use(compression());
 
 // Hata durumlarında da CORS header'larını gönder
 app.use((err, req, res, next) => {

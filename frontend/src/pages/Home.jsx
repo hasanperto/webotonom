@@ -524,6 +524,7 @@ const ProjectsSection = ({ data }) => {
             const displayCount = sectionSettings?.display_count || 6;
             const sortBy = sectionSettings?.sort_by || 'latest';
             const gridLimit = Math.min(100, Math.max(Number(displayCount) || 6, 12));
+            const fetchLimit = Math.min(60, Math.max(gridLimit, 16));
 
             // Sıralama parametresini API'ye uygun formata çevir
             let sortParam = 'popular';
@@ -539,7 +540,7 @@ const ProjectsSection = ({ data }) => {
                 if (selectedIds.length > 0) {
                     // Seçilen ID'lere göre detaylı proje bilgilerini yükle
                     try {
-                        const response = await projectsAPI.getAll({ limit: 100, lang: language });
+                        const response = await projectsAPI.getAll({ limit: fetchLimit, lang: language });
                         const allProjectsData = response.data.projects || [];
                         richPoolForSlider = allProjectsData;
                         allProjects = allProjectsData.filter(p => selectedIds.includes(p.id));
@@ -572,19 +573,19 @@ const ProjectsSection = ({ data }) => {
                     );
                 } else {
                     // Kategori seçilmemişse tüm projeleri getir
-                    const response = await projectsAPI.getAll({ sort_by: sortParam, limit: 100, lang: language });
+                    const response = await projectsAPI.getAll({ sort_by: sortParam, limit: fetchLimit, lang: language });
                     allProjects = response.data.projects || [];
                     richPoolForSlider = allProjects;
                 }
             } else if (displayType === 'featured') {
                 // Izgara: tüm onaylı projeler; slider yalnızca öne çıkan (featured) ile dolar
-                const response = await projectsAPI.getAll({ sort_by: sortParam, limit: 100, lang: language });
+                const response = await projectsAPI.getAll({ sort_by: sortParam, limit: fetchLimit, lang: language });
                 allProjects = response.data.projects || [];
                 richPoolForSlider = allProjects;
             } else {
                 // Tüm projeler
                 try {
-                    const response = await projectsAPI.getAll({ sort_by: sortParam, limit: 100, lang: language });
+                    const response = await projectsAPI.getAll({ sort_by: sortParam, limit: fetchLimit, lang: language });
                     allProjects = response.data.projects || [];
                     richPoolForSlider = allProjects;
                 } catch (error) {
@@ -607,7 +608,7 @@ const ProjectsSection = ({ data }) => {
             let sliderSource = richPoolForSlider;
             if (!sliderSource || sliderSource.length === 0) {
                 try {
-                    const resSlider = await projectsAPI.getAll({ sort_by: sortParam, limit: 100, lang: language });
+                    const resSlider = await projectsAPI.getAll({ sort_by: sortParam, limit: fetchLimit, lang: language });
                     sliderSource = resSlider.data.projects || [];
                 } catch (e) {
                     console.error('Öne çıkan slider projeleri yüklenirken hata:', e);

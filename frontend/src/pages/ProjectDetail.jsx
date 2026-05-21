@@ -20,6 +20,7 @@ import DonationModal from '../components/DonationModal';
 import { AnimatePresence, LayoutGroup, motion as M, useReducedMotion } from 'framer-motion';
 import { MotionCard } from '../components/motion';
 import { motionEase } from '../utils/motion';
+import { formatProjectDescription } from '../utils/formatProjectDescription';
 import './ProjectDetail.css';
 
 const ProjectDetail = () => {
@@ -977,7 +978,7 @@ const ProjectDetail = () => {
                                             {activeTab === 'description' && (
                                         <div className="project-description" id="tab-description">
                                             {project.description ? (
-                                                <div dangerouslySetInnerHTML={{ __html: project.description }} />
+                                                <div dangerouslySetInnerHTML={{ __html: formatProjectDescription(project.description) }} />
                                             ) : (
                                                 <p>{project.short_description || t('project_detail.no_description')}</p>
                                             )}
@@ -1528,43 +1529,65 @@ const ProjectDetail = () => {
             </div>
 
             <div className="project-detail-mobile-cta" role="region" aria-label={t('project_detail.add_to_cart')}>
+                <div className="project-detail-mobile-cta-handle" aria-hidden="true" />
                 <div className="project-detail-mobile-cta-inner">
-                    {!isFree && !isDonationMode && (
-                        <span className="project-detail-mobile-cta-price">
-                            {formatPrice(project.price, project.currency || 'TRY')}
-                        </span>
-                    )}
-                    {isDonationMode && project.donation_target && (
-                        <span className="project-detail-mobile-cta-price text-truncate">
-                            {formatPrice(project.donation_received || 0, project.currency || 'TRY')}
-                            <span className="text-muted"> / </span>
-                            {formatPrice(project.donation_target, project.currency || 'TRY')}
-                        </span>
-                    )}
-                    {isFree && !isDonationMode && (
-                        <span className="project-detail-mobile-cta-price">{t('project_detail.free_badge')}</span>
-                    )}
+                    <div className="project-detail-mobile-cta-meta">
+                        {!isFree && !isDonationMode && (
+                            <div className="project-detail-mobile-cta-price-block">
+                                <span className="project-detail-mobile-cta-label">{t('project_detail.price_label')}</span>
+                                <span className="project-detail-mobile-cta-price">
+                                    {formatPrice(project.price, project.currency || 'TRY')}
+                                </span>
+                            </div>
+                        )}
+                        {isDonationMode && project.donation_target && (
+                            <div className="project-detail-mobile-cta-price-block">
+                                <span className="project-detail-mobile-cta-label">{t('project_detail.donation_target')}</span>
+                                <span className="project-detail-mobile-cta-price text-truncate">
+                                    {formatPrice(project.donation_received || 0, project.currency || 'TRY')}
+                                    <span className="project-detail-mobile-cta-price-sep">/</span>
+                                    {formatPrice(project.donation_target, project.currency || 'TRY')}
+                                </span>
+                            </div>
+                        )}
+                        {isFree && !isDonationMode && (
+                            <div className="project-detail-mobile-cta-badge project-detail-mobile-cta-badge--free">
+                                <FiZap aria-hidden />
+                                <span>{t('project_detail.free_badge')}</span>
+                            </div>
+                        )}
+                    </div>
                     <div className="project-detail-mobile-cta-actions">
                         {!isAuthenticated ? (
                             <div className="project-detail-mobile-cta-auth">
-                                <Link to="/login" className="btn btn-primary btn-sm w-100">
-                                    <FiUsers className="me-1" /> {t('project_detail.login')}
+                                <Link to="/login" className="project-detail-mobile-cta-btn project-detail-mobile-cta-btn--primary">
+                                    <FiUsers aria-hidden />
+                                    <span>{t('project_detail.login')}</span>
                                 </Link>
-                                <Link to="/register" className="btn btn-outline-primary btn-sm w-100">
-                                    <FiUserPlus className="me-1" /> {t('project_detail.register')}
+                                <Link to="/register" className="project-detail-mobile-cta-btn project-detail-mobile-cta-btn--ghost">
+                                    <FiUserPlus aria-hidden />
+                                    <span>{t('project_detail.register')}</span>
                                 </Link>
                             </div>
                         ) : isDonationMode ? (
-                            <button type="button" onClick={handleDonate} className="btn btn-danger btn-sm w-100">
-                                <FiGift className="me-1" /> {t('project_detail.donate')}
+                            <button type="button" onClick={handleDonate} className="project-detail-mobile-cta-btn project-detail-mobile-cta-btn--donate project-detail-mobile-cta-btn--full">
+                                <FiGift aria-hidden />
+                                <span>{t('project_detail.donate')}</span>
                             </button>
                         ) : isFree ? (
-                            <button type="button" className="btn btn-success btn-sm w-100">
-                                <FiDownload className="me-1" /> {t('project_detail.free_download')}
+                            <button type="button" className="project-detail-mobile-cta-btn project-detail-mobile-cta-btn--success project-detail-mobile-cta-btn--full">
+                                <FiDownload aria-hidden />
+                                <span>{t('project_detail.free_download')}</span>
                             </button>
                         ) : (
-                            <button type="button" onClick={handleAddToCart} className="btn btn-primary btn-sm w-100" disabled={addingToCart}>
-                                <FiPackage className="me-1" /> {t('project_detail.add_to_cart')}
+                            <button
+                                type="button"
+                                onClick={handleAddToCart}
+                                className="project-detail-mobile-cta-btn project-detail-mobile-cta-btn--primary project-detail-mobile-cta-btn--full"
+                                disabled={addingToCart}
+                            >
+                                <FiPackage aria-hidden />
+                                <span>{addingToCart ? '...' : t('project_detail.add_to_cart')}</span>
                             </button>
                         )}
                     </div>

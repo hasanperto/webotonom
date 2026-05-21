@@ -1,5 +1,41 @@
 import pool from '../config/database.js';
 
+const MAINTENANCE_CACHE_MS = 60_000;
+let maintenanceCache = { at: 0, settings: null };
+
+async function loadMaintenanceSettings() {
+    const now = Date.now();
+    if (maintenanceCache.settings && now - maintenanceCache.at < MAINTENANCE_CACHE_MS) {
+        return maintenanceCache.settings;
+    }
+
+    const [settings] = await pool.execute(
+        'SELECT `key`, `value`, `type` FROM settings WHERE `group` = ?',
+        ['maintenance']
+    );
+
+    const maintenanceSettings = {
+        enabled: false,
+        message_tr: 'Site bakımda. Lütfen daha sonra tekrar deneyin.',
+        message_en: 'Site is under maintenance. Please try again later.',
+        message_de: 'Die Website befindet sich im Wartungsmodus. Bitte versuchen Sie es später erneut.',
+        message: 'Site bakımda. Lütfen daha sonra tekrar deneyin.',
+        allowedIps: '',
+    };
+
+    settings.forEach((setting) => {
+        if (setting.type === 'boolean') {
+            maintenanceSettings[setting.key] =
+                setting.value === '1' || setting.value === 'true';
+        } else {
+            maintenanceSettings[setting.key] = setting.value;
+        }
+    });
+
+    maintenanceCache = { at: now, settings: maintenanceSettings };
+    return maintenanceSettings;
+}
+
 /**
  * Bakım modu kontrolü middleware
  * Bakım modu aktifse ve kullanıcı admin değilse veya IP izinli değilse erişimi engeller
@@ -22,40 +58,17 @@ export const checkMaintenanceMode = async (req, res, next) => {
             return next();
         }
 
-        // Bakım modu ayarlarını veritabanından oku - timeout ile
-        let settings = [];
+        let maintenanceSettings;
         try {
-            const queryPromise = pool.execute(
-                'SELECT `key`, `value`, `type` FROM settings WHERE `group` = ?',
-                ['maintenance']
-            );
-            // 3 saniye timeout
-            const timeoutPromise = new Promise((_, reject) => 
+            const queryPromise = loadMaintenanceSettings();
+            const timeoutPromise = new Promise((_, reject) =>
                 setTimeout(() => reject(new Error('Database timeout')), 3000)
             );
-            [settings] = await Promise.race([queryPromise, timeoutPromise]);
+            maintenanceSettings = await Promise.race([queryPromise, timeoutPromise]);
         } catch (error) {
             console.error('Maintenance settings query error:', error);
-            // Hata durumunda bakım modu aktif değil kabul et - erişime izin ver
             return next();
         }
-
-        const maintenanceSettings = {
-            enabled: false,
-            message_tr: 'Site bakımda. Lütfen daha sonra tekrar deneyin.',
-            message_en: 'Site is under maintenance. Please try again later.',
-            message_de: 'Die Website befindet sich im Wartungsmodus. Bitte versuchen Sie es später erneut.',
-            message: 'Site bakımda. Lütfen daha sonra tekrar deneyin.', // Geriye dönük uyumluluk
-            allowedIps: ''
-        };
-
-        settings.forEach(setting => {
-            if (setting.type === 'boolean') {
-                maintenanceSettings[setting.key] = setting.value === '1' || setting.value === 'true';
-            } else {
-                maintenanceSettings[setting.key] = setting.value;
-            }
-        });
 
         // Bakım modu aktif değilse devam et
         if (!maintenanceSettings.enabled) {

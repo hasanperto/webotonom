@@ -202,13 +202,19 @@ const Projects = () => {
     }, [showAdvancedFilters, isMobile]);
 
     useEffect(() => {
-        loadProjects();
         loadCategories();
         loadTags();
+    }, []);
+
+    useEffect(() => {
+        loadProjects();
+    }, [selectedCategory, search, filters, language]);
+
+    useEffect(() => {
         if (isAuthenticated) {
             loadFavorites();
         }
-    }, [selectedCategory, search, isAuthenticated, filters, language]);
+    }, [isAuthenticated]);
 
     const loadProjects = async () => {
         try {

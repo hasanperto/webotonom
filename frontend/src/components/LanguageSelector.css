@@ -134,3 +134,35 @@
     box-shadow: 0 4px 16px rgba(105, 108, 255, 0.4);
 }
 
+/* Mobil menü çekmecesi */
+.language-selector--drawer {
+    display: block;
+    width: 100%;
+}
+
+.language-selector--drawer .language-selector-button {
+    width: 100%;
+    justify-content: space-between;
+    min-height: 40px;
+    padding: 0.5rem 0.65rem;
+    font-size: 0.85rem;
+    border-radius: 10px;
+    box-shadow: none;
+}
+
+.language-selector--drawer .language-selector-button:hover {
+    transform: none;
+}
+
+.language-selector--drawer .language-dropdown {
+    position: fixed;
+    left: auto;
+    right: 0.85rem;
+    bottom: calc(8.5rem + env(safe-area-inset-bottom, 12px));
+    top: auto;
+    width: min(300px, calc(92vw - 1.7rem));
+    max-height: min(240px, 38vh);
+    overflow-y: auto;
+    z-index: 1310;
+}
+

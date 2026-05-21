@@ -1,125 +1,158 @@
-# Tekno — Sunucu yayını
+# Tekno — Sunucu yayini (production)
 
-Paket yapısı (backend ile aynı üst dizinde `frontend/dist` olmalı — `server.js` buna göre):
+Tek uygulama: **Node `backend/server.js`** API + `frontend/dist` statik dosyalari.
 
 ```
 tekno/
-├── backend/          # Node API (sunucuda: npm ci --omit=dev)
-│   ├── server.js
-│   ├── package.json
-│   ├── package-lock.json
-│   └── public/uploads/
-└── frontend/
-    └── dist/         # Vite production build
+├── backend/              # API, uploads, .env
+├── frontend/dist/        # npm run build ciktisi
+└── deploy/               # PM2, Nginx ornek, scriptler
 ```
+
+## Hizli baslangic (Linux / aaPanel)
+
+```bash
+cd /www/wwwroot/alanadiniz.com    # proje kokunuz
+chmod +x deploy/scripts/*.sh
+./deploy/scripts/sunucu-kurulum.sh .
+```
+
+Sonra `backend/.env` duzenleyin ve PM2/Nginx kontrol edin.
+
+Detayli kontrol listesi: [KONTROL_LISTESI.md](./KONTROL_LISTESI.md)
+
+---
 
 ## Gereksinimler
 
-- Node.js **20+** (veya 22 LTS)
-- MySQL / MariaDB
-- İsteğe bağlı: Nginx reverse proxy, PM2, SSL
+| Bilesen | Minimum |
+|---------|---------|
+| Node.js | 20 LTS veya 22 |
+| MySQL/MariaDB | 10.4+ |
+| PM2 | Onerilir |
+| Nginx | Reverse proxy + SSL |
 
-## Kurulum (Linux örneği)
+---
 
-```bash
-unzip tekno-release-*.zip -d /var/www/
-cd /var/www/tekno/backend
-cp .env.example .env
-nano .env   # DB_HOST, DB_USER, DB_PASSWORD, DB_NAME, JWT_SECRET, NODE_ENV=production, FRONTEND_URL, CORS_ORIGIN
+## Ortam dosyasi (`backend/.env`)
 
-npm ci --omit=dev
-mkdir -p public/uploads
-chmod -R 775 public/uploads   # kullanıcı/www-data’ya göre ayarlayın
-export NODE_ENV=production
-node server.js
-```
-
-Kalıcı çalıştırma için PM2:
+Sablon: `deploy/.env.production.example`
 
 ```bash
-npm i -g pm2
-cd /var/www/tekno/backend
-pm2 start server.js --name tekno --env production
-pm2 save
+cp deploy/.env.production.example backend/.env
+nano backend/.env
 ```
 
-## Ortam değişkenleri (özet)
-
-| Değişken | Örnek |
+| Degisken | Ornek |
 |----------|--------|
 | `NODE_ENV` | `production` |
 | `PORT` | `5000` |
-| `FRONTEND_URL` | `https://alanadin.com` |
-| `CORS_ORIGIN` | `https://alanadin.com,https://www.alanadin.com` |
-| `JWT_SECRET` | Güçlü rastgele string |
+| `DB_HOST` | `127.0.0.1` |
+| `DB_NAME` | `teknopro` |
+| `FRONTEND_URL` | `https://alanadiniz.com` |
+| `CORS_ORIGIN` | `https://alanadiniz.com,https://www.alanadiniz.com` |
+| `JWT_SECRET` | Uzun rastgele string |
 
-Frontend build, production’da `VITE_API_URL` olmadan çalışır: `window.location.origin + '/api'`. API alt domain’de ise build sırasında `VITE_API_URL` verilmeli (paketi o adrese göre yeniden oluşturun).
+Frontend build: `VITE_API_URL` **gerekmez** — production'da `https://domain/api` otomatik kullanilir.
 
-## Sağlık kontrolü
+---
 
-`GET https://alanadiniz/api/health`
+## PM2
 
-## Nginx örnek (SSL kendi certbot ile)
-
-```nginx
-server {
-    listen 443 ssl http2;
-    server_name alanadin.com;
-    # ssl_certificate ...;
-
-    location / {
-        proxy_pass http://127.0.0.1:5000;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-}
-```
-
-Veritabanı şeması ve çeviriler: `backend/services/yedekdb/` altındaki SQL dosyalarını sırayla veya ihtiyaca göre içe aktarın.
-
-## Güncelleme — Git (ör. webotonom.de)
-
-Yerelde değişiklikleri repoya gönderdikten sonra sunucuda (proje kökü `tekno/` ve `git clone` ile kurulmuş varsayımı):
+Proje kokunden:
 
 ```bash
-cd /path/to/tekno
-git pull origin main   # branch adınıza göre: master
-cd frontend
-npm ci --legacy-peer-deps
-npm run build
-cd ../backend
+pm2 start deploy/ecosystem.config.cjs
+pm2 save
+pm2 startup    # sunucu acilisinda (bir kez)
+```
+
+Loglar: `backend/logs/pm2-*.log`
+
+---
+
+## Veritabani
+
+**Mevcut sunucu (guncelleme):**
+
+```bash
+cd backend
+NODE_ENV=production node scripts/sunucu-hazirlik.js
+```
+
+Bu script: baglanti testi, `order_items.plan_id`, odeme tablolari (`setup-payment-integrations.js`).
+
+**Sifirdan kurulum:** `backend/services/yedekdb/database.sql` ve ihtiyaca gore diger SQL dosyalarini phpMyAdmin ile import edin. Tam dump varsa once onu kullanin.
+
+**Onemli:** Canli DB adi `.env` icindeki `DB_NAME` (ornek: `teknopro`). `teknoprojes` kullanmayin.
+
+---
+
+## Nginx
+
+Ornek: `deploy/nginx-tekno.example.conf`
+
+- Tum trafik → `http://127.0.0.1:5000`
+- `/uploads/` icin istege bagli `alias` (performans)
+
+Test:
+
+```bash
+curl -sS https://alanadiniz.com/api/health
+```
+
+---
+
+## Windows'tan zip paketi (Git yok)
+
+```powershell
+cd D:\Sonver\tekno
+.\scripts\build-release.ps1
+```
+
+Cikti: `dist\tekno-release-*.zip` — sunucuda acin; **`backend/.env`** ve **`public/uploads`** uzerine yazmayin.
+
+```bash
+cd tekno-release-.../backend
 npm ci --omit=dev
-pm2 restart tekno        # veya: NODE_ENV=production pm2 restart tekno
+cp deploy/.env.production.example .env   # ilk kurulum
+nano .env
+NODE_ENV=production node scripts/sunucu-hazirlik.js
+pm2 start ../deploy/ecosystem.config.cjs
 ```
 
-- `.env` sunucuda kalır (repoda olmamalı).
-- `public/uploads` içeriği `git pull` ile silinmez; yedek almayı unutmayın.
+---
 
-### İlk kez Git ile bağlamak (yerel `tekno` klasörü)
-
-Proje kökünde henüz `.git` yoksa:
+## Git ile guncelleme
 
 ```bash
-cd /path/to/tekno
-git init
-git add -A
-git commit -m "Initial commit"
-git branch -M main
-git remote add origin https://github.com/KULLANICI/tekno.git
-git push -u origin main
+./deploy/scripts/sunucu-guncelle.sh /path/to/tekno
 ```
 
-Sunucuda:
+veya manuel:
 
 ```bash
-cd /var/www
-git clone https://github.com/KULLANICI/tekno.git tekno
-# sonra Kurulum bölümündeki .env ve npm adımları
+pm2 stop tekno
+git pull
+cd frontend && npm ci --legacy-peer-deps && npm run build
+cd ../backend && npm ci --omit=dev && node scripts/sunucu-hazirlik.js
+pm2 restart tekno
 ```
 
-### Git kullanmadan güncelleme
+---
 
-Windows’ta `.\scripts\build-release.ps1` ile zip üretip sunucuda eski `frontend/dist` ve `backend` kaynaklarının üzerine açın; backend’de `npm ci --omit=dev` ve PM2 yeniden başlatın.
+## webotonom.de / aaPanel
+
+Bkz. [AA_PANEL_WEBOTONOM_GUNCELLEME.md](./AA_PANEL_WEBOTONOM_GUNCELLEME.md) — ayni akis; script adlari `tekno` PM2 process.
+
+---
+
+## Sorun giderme
+
+| Belirti | Cozum |
+|---------|--------|
+| 502 Bad Gateway | `pm2 list`, port 5000 dinliyor mu |
+| API OK, DB fail | `.env` DB bilgileri, MySQL calisiyor mu |
+| Siparis 500 | `node scripts/sunucu-hazirlik.js` |
+| CORS hatasi | `CORS_ORIGIN` tam domain (https) |
+| Bos sayfa | `frontend/dist/index.html` var mi, `NODE_ENV=production` |

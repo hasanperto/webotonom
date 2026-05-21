@@ -1,11 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import AdminLayout from '../components/AdminLayout';
 import api from '../api/axios';
+import { getImageUrl } from '../utils/api';
 import { 
     FiPackage, FiSearch, FiEye, FiCheckCircle, FiXCircle, FiClock,
     FiRefreshCw, FiDollarSign, FiUser, FiTag, FiCalendar, FiEdit, FiTrash2,
-    FiMoreVertical, FiTrendingUp, FiPlus, FiX
+    FiTrendingUp, FiPlus, FiAlertCircle
 } from 'react-icons/fi';
 import './AdminProjects.css';
 
@@ -15,40 +16,51 @@ const AdminProjects = () => {
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState('all');
     const [searchTerm, setSearchTerm] = useState('');
-    const [expandedActions, setExpandedActions] = useState({});
+    const [loadError, setLoadError] = useState(null);
 
-    useEffect(() => {
-        loadProjects();
-    }, [filter, searchTerm]);
-
-    const loadProjects = async () => {
+    const loadProjects = useCallback(async () => {
         try {
+            setLoading(true);
+            setLoadError(null);
             const response = await api.get('/admin/projects');
-            let fetchedProjects = response.data.projects || [];
-            
-            setAllProjects(fetchedProjects);
-            
-            // Filter by status
-            let filtered = filter !== 'all' 
-                ? fetchedProjects.filter(p => p.status === filter)
-                : fetchedProjects;
-            
-            // Filter by search term
-            if (searchTerm) {
-                filtered = filtered.filter(p => 
-                    p.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    p.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    p.category_name?.toLowerCase().includes(searchTerm.toLowerCase())
-                );
-            }
-            
-            setProjects(filtered);
+            setAllProjects(response.data.projects || []);
         } catch (error) {
             console.error('Projects load error:', error);
+            setAllProjects([]);
+            setLoadError(
+                error.response?.data?.details ||
+                    error.response?.data?.error ||
+                    'Proje listesi alınamadı. Backend çalışıyor mu kontrol edin.'
+            );
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
+
+    useEffect(() => {
+        loadProjects();
+    }, [loadProjects]);
+
+    const filteredProjects = useMemo(() => {
+        let list = filter !== 'all'
+            ? allProjects.filter((p) => p.status === filter)
+            : allProjects;
+
+        if (searchTerm.trim()) {
+            const q = searchTerm.toLowerCase();
+            list = list.filter(
+                (p) =>
+                    p.title?.toLowerCase().includes(q) ||
+                    p.username?.toLowerCase().includes(q) ||
+                    p.category_name?.toLowerCase().includes(q)
+            );
+        }
+        return list;
+    }, [allProjects, filter, searchTerm]);
+
+    useEffect(() => {
+        setProjects(filteredProjects);
+    }, [filteredProjects]);
 
     const handleStatusChange = async (projectId, newStatus) => {
         if (confirm(`Proje durumunu "${newStatus === 'approved' ? 'Onaylı' : newStatus === 'rejected' ? 'Reddedilen' : 'Beklemede'}" olarak değiştirmek istediğinize emin misiniz?`)) {
@@ -56,7 +68,6 @@ const AdminProjects = () => {
                 await api.put(`/admin/projects/${projectId}/status`, { status: newStatus });
                 loadProjects();
                 // Mobil menüyü kapat
-                setExpandedActions(prev => ({ ...prev, [projectId]: false }));
             } catch (error) {
                 alert(error.response?.data?.error || 'Durum güncellenemedi');
             }
@@ -68,19 +79,71 @@ const AdminProjects = () => {
             try {
                 await api.delete(`/admin/projects/${projectId}`);
                 loadProjects();
-                setExpandedActions(prev => ({ ...prev, [projectId]: false }));
             } catch (error) {
                 alert(error.response?.data?.error || 'Proje silinemedi');
             }
         }
     };
 
-    const toggleActionsMenu = (projectId) => {
-        setExpandedActions(prev => ({
-            ...prev,
-            [projectId]: !prev[projectId]
-        }));
-    };
+    const formatDate = (value) =>
+        new Date(value).toLocaleDateString('tr-TR', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+        });
+
+    const renderProjectActions = (project) => (
+        <div className="pai-actions">
+            <Link
+                to={`/projects/${project.id}`}
+                className="pai-btn pai-btn--view"
+                title="Görüntüle"
+            >
+                <FiEye /> <span>Görüntüle</span>
+            </Link>
+            <Link
+                to={`/admin/projects/${project.id}/edit`}
+                className="pai-btn pai-btn--edit"
+                title="Düzenle"
+            >
+                <FiEdit /> <span>Düzenle</span>
+            </Link>
+            {project.status !== 'approved' && project.status !== 'active' && (
+                <button
+                    type="button"
+                    className="pai-btn pai-btn--approve"
+                    onClick={() => handleStatusChange(project.id, 'approved')}
+                >
+                    <FiCheckCircle /> <span>Onayla</span>
+                </button>
+            )}
+            {project.status !== 'rejected' && (
+                <button
+                    type="button"
+                    className="pai-btn pai-btn--reject"
+                    onClick={() => handleStatusChange(project.id, 'rejected')}
+                >
+                    <FiXCircle /> <span>Reddet</span>
+                </button>
+            )}
+            {(project.status === 'approved' || project.status === 'active') && (
+                <button
+                    type="button"
+                    className="pai-btn pai-btn--pending"
+                    onClick={() => handleStatusChange(project.id, 'pending')}
+                >
+                    <FiClock /> <span>Beklet</span>
+                </button>
+            )}
+            <button
+                type="button"
+                className="pai-btn pai-btn--delete"
+                onClick={() => handleDelete(project.id)}
+            >
+                <FiTrash2 /> <span>Sil</span>
+            </button>
+        </div>
+    );
 
     const formatPrice = (price) => {
         return new Intl.NumberFormat('tr-TR', {
@@ -136,9 +199,14 @@ const AdminProjects = () => {
                         <h1 className="page-title">Proje Yönetimi</h1>
                         <p className="page-subtitle">Tüm projeleri görüntüle, onayla veya reddet</p>
                     </div>
-                    <button className="btn-refresh" onClick={loadProjects}>
-                        <FiRefreshCw /> Yenile
-                    </button>
+                    <div className="header-actions">
+                        <Link to="/admin/projects/new" className="btn-primary">
+                            <FiPlus /> Proje Ekle
+                        </Link>
+                        <button type="button" className="btn-refresh" onClick={loadProjects}>
+                            <FiRefreshCw /> Yenile
+                        </button>
+                    </div>
                 </div>
 
                 {/* Stats Cards - Minimal */}
@@ -221,263 +289,135 @@ const AdminProjects = () => {
                     </div>
                 </div>
 
+                {loadError && (
+                    <div className="bot-error-banner">
+                        <FiAlertCircle />
+                        <span>{loadError}</span>
+                    </div>
+                )}
+
                 {/* Projects Table - Modern List */}
-                {projects.length === 0 ? (
+                {!loadError && projects.length === 0 ? (
                     <div className="empty-state-minimal">
                         <FiPackage className="empty-icon" />
                         <h3>Proje bulunamadı</h3>
-                        <p>Seçili filtreye uygun proje yok.</p>
+                        <p>
+                            {allProjects.length === 0
+                                ? 'Henüz kayıtlı proje yok.'
+                                : 'Seçili filtreye uygun proje yok.'}
+                        </p>
                     </div>
-                ) : (
-                    <div className="projects-table-minimal">
-                        <table className="projects-table">
-                            <thead>
-                                <tr>
-                                    <th>Proje</th>
-                                    <th>Satıcı</th>
-                                    <th>Kategori</th>
-                                    <th>Fiyat</th>
-                                    <th>Durum</th>
-                                    <th>Tarih</th>
-                                    <th className="text-center">İşlemler</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {projects.map(project => {
-                                    const statusInfo = getStatusBadge(project.status);
-                                    const StatusIcon = statusInfo.icon;
-                                    const isExpanded = expandedActions[project.id];
-                                    return (
-                                        <tr 
-                                            key={project.id}
-                                            className={isExpanded ? 'expanded-row' : ''}
-                                            onClick={(e) => {
-                                                // Mobilde satıra tıklanınca menüyü aç/kapat
-                                                if (window.innerWidth <= 1024) {
-                                                    e.preventDefault();
-                                                    e.stopPropagation();
-                                                    toggleActionsMenu(project.id);
-                                                }
-                                            }}
-                                        >
-                                            <td>
-                                                <div className="project-cell">
-                                                    {/* Mobilde + butonu */}
-                                                    <div className="project-mobile-toggle">
-                                                        <button
-                                                            className="btn-mobile-toggle"
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                toggleActionsMenu(project.id);
-                                                            }}
-                                                        >
-                                                            {isExpanded ? <FiX /> : <FiPlus />}
-                                                        </button>
-                                                        {/* Mobil menü + butonunun altında */}
-                                                        {isExpanded && (
-                                                            <>
-                                                                <div 
-                                                                    className="actions-mobile-overlay"
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        setExpandedActions(prev => ({ ...prev, [project.id]: false }));
-                                                                    }}
-                                                                ></div>
-                                                                <div 
-                                                                    className="actions-mobile-menu"
-                                                                    onClick={(e) => e.stopPropagation()}
-                                                                >
-                                                                    <Link
-                                                                        to={`/projects/${project.id}`}
-                                                                        className="btn-action-mobile btn-view"
-                                                                        onClick={() => setExpandedActions(prev => ({ ...prev, [project.id]: false }))}
-                                                                    >
-                                                                        <FiEye /> Görüntüle
-                                                                    </Link>
-                                                                    <Link
-                                                                        to={`/seller/projects/${project.id}/edit`}
-                                                                        className="btn-action-mobile btn-edit"
-                                                                        onClick={() => setExpandedActions(prev => ({ ...prev, [project.id]: false }))}
-                                                                    >
-                                                                        <FiEdit /> Düzenle
-                                                                    </Link>
-                                                                    {project.status !== 'approved' && (
-                                                                        <button
-                                                                            className="btn-action-mobile btn-approve"
-                                                                            onClick={() => {
-                                                                                handleStatusChange(project.id, 'approved');
-                                                                                setExpandedActions(prev => ({ ...prev, [project.id]: false }));
-                                                                            }}
-                                                                        >
-                                                                            <FiCheckCircle /> Onayla
-                                                                        </button>
-                                                                    )}
-                                                                    {project.status !== 'rejected' && (
-                                                                        <button
-                                                                            className="btn-action-mobile btn-reject"
-                                                                            onClick={() => {
-                                                                                handleStatusChange(project.id, 'rejected');
-                                                                                setExpandedActions(prev => ({ ...prev, [project.id]: false }));
-                                                                            }}
-                                                                        >
-                                                                            <FiXCircle /> Reddet
-                                                                        </button>
-                                                                    )}
-                                                                    {project.status === 'approved' && (
-                                                                        <button
-                                                                            className="btn-action-mobile btn-cancel"
-                                                                            onClick={() => {
-                                                                                handleStatusChange(project.id, 'pending');
-                                                                                setExpandedActions(prev => ({ ...prev, [project.id]: false }));
-                                                                            }}
-                                                                        >
-                                                                            <FiClock /> Onayı İptal Et
-                                                                        </button>
-                                                                    )}
-                                                                    <button
-                                                                        className="btn-action-mobile btn-delete"
-                                                                        onClick={() => {
-                                                                            handleDelete(project.id);
-                                                                            setExpandedActions(prev => ({ ...prev, [project.id]: false }));
-                                                                        }}
-                                                                    >
-                                                                        <FiTrash2 /> Sil
-                                                                    </button>
-                                                                </div>
-                                                            </>
-                                                        )}
+                ) : !loadError ? (
+                    <div className="projects-list-shell">
+                        <div className="projects-list-head" aria-hidden="true">
+                            <span>Proje</span>
+                            <span>Satıcı</span>
+                            <span>Kategori</span>
+                            <span>Fiyat</span>
+                            <span>Durum</span>
+                            <span>Tarih</span>
+                            <span>İşlemler</span>
+                        </div>
+                        <ul className="projects-list">
+                            {projects.map((project) => {
+                                const statusInfo = getStatusBadge(project.status);
+                                const StatusIcon = statusInfo.icon;
+                                const thumbSrc = project.primary_image
+                                    ? getImageUrl(project.primary_image)
+                                    : null;
+
+                                return (
+                                    <li key={project.id} className="project-admin-item">
+                                        <div className="pai-col pai-col--project">
+                                            <div className="pai-project">
+                                                {thumbSrc ? (
+                                                    <img
+                                                        src={thumbSrc}
+                                                        alt=""
+                                                        className="pai-thumb"
+                                                        loading="lazy"
+                                                    />
+                                                ) : (
+                                                    <div className="pai-thumb pai-thumb--empty">
+                                                        <FiPackage />
                                                     </div>
-                                                    
-                                                    {project.primary_image && (
-                                                        <img 
-                                                            src={project.primary_image} 
-                                                            alt={project.title}
-                                                            className="project-thumb"
-                                                        />
+                                                )}
+                                                <div className="pai-project-text">
+                                                    <Link
+                                                        to={`/projects/${project.id}`}
+                                                        className="pai-title"
+                                                    >
+                                                        {project.title || 'İsimsiz Proje'}
+                                                    </Link>
+                                                    {project.short_description && (
+                                                        <p className="pai-desc">
+                                                            {project.short_description}
+                                                        </p>
                                                     )}
-                                                    <div className="project-info-cell">
-                                                        <Link 
-                                                            to={`/projects/${project.id}`}
-                                                            className="project-title-link"
-                                                            onClick={(e) => {
-                                                                // Mobilde link tıklamasını engelle, sadece menüyü aç
-                                                                if (window.innerWidth <= 1024) {
-                                                                    e.preventDefault();
-                                                                    e.stopPropagation();
-                                                                    toggleActionsMenu(project.id);
-                                                                }
-                                                            }}
-                                                        >
-                                                            {project.title || 'İsimsiz Proje'}
-                                                        </Link>
-                                                        {project.short_description && (
-                                                            <p className="project-desc-cell">
-                                                                {project.short_description.substring(0, 60)}...
-                                                            </p>
-                                                        )}
+                                                    <div className="pai-mobile-meta">
+                                                        <span>
+                                                            <FiUser /> {project.username || '—'}
+                                                        </span>
+                                                        <span>
+                                                            <FiTag />{' '}
+                                                            {project.category_name || '—'}
+                                                        </span>
+                                                        <span className="pai-mobile-price">
+                                                            {formatPrice(project.price)}
+                                                        </span>
                                                     </div>
                                                 </div>
-                                            </td>
-                                            <td>
-                                                <div className="user-cell">
-                                                    <FiUser className="user-icon" />
-                                                    <span>{project.username || 'Bilinmeyen'}</span>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div className="category-cell">
-                                                    <FiTag className="category-icon" />
-                                                    <span>{project.category_name || 'Belirtilmemiş'}</span>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <span className="price-cell">{formatPrice(project.price)}</span>
-                                            </td>
-                                            <td>
-                                                <span className={`status-badge-minimal ${statusInfo.class}`}>
-                                                    <StatusIcon />
-                                                    {statusInfo.label}
-                                                </span>
-                                            </td>
-                                            <td>
-                                                <div className="date-cell">
-                                                    <FiCalendar className="date-icon" />
-                                                    <span>
-                                                        {new Date(project.created_at).toLocaleDateString('tr-TR', {
-                                                            day: '2-digit',
-                                                            month: '2-digit',
-                                                            year: 'numeric'
-                                                        })}
-                                                    </span>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div className="actions-cell">
-                                                    {/* Desktop Actions */}
-                                                    <div className="actions-desktop">
-                                                        <Link
-                                                            to={`/projects/${project.id}`}
-                                                            className="btn-action btn-view"
-                                                            title="Görüntüle"
-                                                        >
-                                                            <FiEye />
-                                                        </Link>
-                                                        <Link
-                                                            to={`/admin/projects/${project.id}/edit`}
-                                                            className="btn-action btn-edit"
-                                                            title="Düzenle"
-                                                        >
-                                                            <FiEdit />
-                                                        </Link>
-                                                        {project.status !== 'approved' && (
-                                                            <button
-                                                                className="btn-action btn-approve"
-                                                                onClick={() => handleStatusChange(project.id, 'approved')}
-                                                                title="Onayla"
-                                                            >
-                                                                <FiCheckCircle />
-                                                            </button>
-                                                        )}
-                                                        {project.status !== 'rejected' && (
-                                                            <button
-                                                                className="btn-action btn-reject"
-                                                                onClick={() => handleStatusChange(project.id, 'rejected')}
-                                                                title="Reddet"
-                                                            >
-                                                                <FiXCircle />
-                                                            </button>
-                                                        )}
-                                                        {project.status === 'approved' && (
-                                                            <button
-                                                                className="btn-action btn-cancel"
-                                                                onClick={() => handleStatusChange(project.id, 'pending')}
-                                                                title="Onayı İptal Et"
-                                                            >
-                                                                <FiClock />
-                                                            </button>
-                                                        )}
-                                                        <button
-                                                            className="btn-action btn-delete"
-                                                            onClick={() => handleDelete(project.id)}
-                                                            title="Sil"
-                                                        >
-                                                            <FiTrash2 />
-                                                        </button>
-                                                    </div>
-                                                    
-                                                    {/* Mobile Actions - Sadece menü göster, toggle butonu proje adının önünde */}
-                                                    <div className="actions-mobile">
-                                                        {/* Mobil menü artık + butonunun altında */}
-                                                    </div>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
-                            </tbody>
-                        </table>
+                                            </div>
+                                        </div>
+
+                                        <div className="pai-col pai-col--seller">
+                                            <span className="pai-label">Satıcı</span>
+                                            <span className="pai-value">
+                                                <FiUser /> {project.username || 'Bilinmeyen'}
+                                            </span>
+                                        </div>
+
+                                        <div className="pai-col pai-col--category">
+                                            <span className="pai-label">Kategori</span>
+                                            <span className="pai-value">
+                                                <FiTag /> {project.category_name || '—'}
+                                            </span>
+                                        </div>
+
+                                        <div className="pai-col pai-col--price">
+                                            <span className="pai-label">Fiyat</span>
+                                            <span className="pai-value pai-value--price">
+                                                {formatPrice(project.price)}
+                                            </span>
+                                        </div>
+
+                                        <div className="pai-col pai-col--status">
+                                            <span className="pai-label">Durum</span>
+                                            <span
+                                                className={`status-badge-minimal ${statusInfo.class}`}
+                                            >
+                                                <StatusIcon />
+                                                {statusInfo.label}
+                                            </span>
+                                        </div>
+
+                                        <div className="pai-col pai-col--date">
+                                            <span className="pai-label">Tarih</span>
+                                            <span className="pai-value">
+                                                <FiCalendar /> {formatDate(project.created_at)}
+                                            </span>
+                                        </div>
+
+                                        <div className="pai-col pai-col--actions">
+                                            <span className="pai-label">İşlemler</span>
+                                            {renderProjectActions(project)}
+                                        </div>
+                                    </li>
+                                );
+                            })}
+                        </ul>
                     </div>
-                )}
+                ) : null}
             </div>
         </AdminLayout>
     );

@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { AnimatePresence, LayoutGroup, motion as M } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
@@ -61,6 +62,20 @@ const Header = ({ mobileMenuOpen: propMobileMenuOpen, setMobileMenuOpen: propSet
     };
 
     const closeMobileMenu = () => setMobileMenuOpen(false);
+
+    useEffect(() => {
+        if (!isMobile || !mobileMenuOpen) {
+            document.body.classList.remove('mobile-nav-open');
+            return;
+        }
+        document.body.classList.add('mobile-nav-open');
+        const prev = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+        return () => {
+            document.body.classList.remove('mobile-nav-open');
+            document.body.style.overflow = prev;
+        };
+    }, [isMobile, mobileMenuOpen]);
 
     // Site ayarlarını yükle
     useEffect(() => {
@@ -172,9 +187,32 @@ const Header = ({ mobileMenuOpen: propMobileMenuOpen, setMobileMenuOpen: propSet
     };
 
 
+    const mobileBackdrop =
+        typeof document !== 'undefined'
+            ? createPortal(
+                  <AnimatePresence>
+                      {isMobile && mobileMenuOpen ? (
+                          <M.button
+                              key="mobile-nav-backdrop"
+                              type="button"
+                              className="mobile-nav-backdrop"
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              exit={{ opacity: 0 }}
+                              transition={{ duration: 0.2 }}
+                              onClick={closeMobileMenu}
+                              aria-label={t('header.close_menu')}
+                          />
+                      ) : null}
+                  </AnimatePresence>,
+                  document.body
+              )
+            : null;
+
     return (
         <>
-        <header className="main-header">
+        {mobileBackdrop}
+        <header className={`main-header${mobileMenuOpen && isMobile ? ' main-header--menu-open' : ''}`}>
             <div className="header-content container">
                 <div className="logo-section">
                     <Link to="/" className="logo" onClick={closeMobileMenu}>
@@ -225,7 +263,24 @@ const Header = ({ mobileMenuOpen: propMobileMenuOpen, setMobileMenuOpen: propSet
                 </div>
 
 
-                <nav className={`main-nav ${mobileMenuOpen ? 'open' : ''}`} id="main-navigation">
+                <nav
+                    className={`main-nav ${mobileMenuOpen ? 'open' : ''}`}
+                    id="main-navigation"
+                    aria-hidden={isMobile && !mobileMenuOpen}
+                >
+                    <div className="mobile-nav-drawer-header">
+                        <span className="mobile-nav-drawer-title">{t('header.menu')}</span>
+                        <button
+                            type="button"
+                            className="mobile-nav-drawer-close"
+                            onClick={closeMobileMenu}
+                            aria-label={t('header.close_menu')}
+                        >
+                            <FiX aria-hidden />
+                        </button>
+                    </div>
+
+                    <div className="mobile-nav-drawer-body">
                     <LayoutGroup id="header-primary-nav">
                     <ul className="nav-links">
                         {fixedOrder.map((key) => {
@@ -428,58 +483,69 @@ const Header = ({ mobileMenuOpen: propMobileMenuOpen, setMobileMenuOpen: propSet
                                         </Link>
                                     )}
                                 </li>
-                                <li className="nav-divider"></li>
-                                <li>
+                                <li className="nav-divider nav-auth-desktop"></li>
+                                <li className="nav-auth-desktop">
                                     <Link to="/login" className="btn-nav" onClick={closeMobileMenu}>
                                         {t('header.login')}
                                     </Link>
                                 </li>
-                                <li>
+                                <li className="nav-auth-desktop">
                                     <Link to="/register" className="btn-nav btn-nav-primary" onClick={closeMobileMenu}>
                                         {t('header.register')}
                                     </Link>
                                 </li>
                             </>
                         )}
-
-                        {/* Mobile Only Extras */}
-                        <li className="nav-divider mobile-only"></li>
-                        <li className="mobile-only mobile-extras">
-                            <div className="mobile-extra-item">
-                                <LanguageSelector />
-                            </div>
-                            <button
-                                onClick={toggleTheme}
-                                className="theme-toggle mobile-menu-theme-toggle"
-                                aria-label={t('theme.toggle', 'Tema değiştir')}
-                            >
-                                {theme === 'light' ? <FiMoon /> : <FiSun />}
-                                <span>
-                                    {theme === 'light'
-                                        ? t('theme.switch_to_dark', 'Koyu Mod')
-                                        : t('theme.switch_to_light', 'Açık Mod')}
-                                </span>
-                            </button>
-                        </li>
                     </ul>
                     </LayoutGroup>
+                    </div>
+
+                    <div className="mobile-nav-drawer-footer">
+                        <p className="mobile-nav-prefs-heading">{t('header.preferences')}</p>
+                        <div className="mobile-nav-prefs-grid">
+                            <div className="mobile-nav-pref-card mobile-nav-pref-card--lang">
+                                <span className="mobile-nav-pref-label">{t('header.language')}</span>
+                                <LanguageSelector variant="drawer" />
+                            </div>
+                            <button
+                                type="button"
+                                onClick={toggleTheme}
+                                className="mobile-nav-pref-card mobile-nav-pref-card--theme"
+                                aria-label={t('theme.toggle', 'Tema değiştir')}
+                            >
+                                <span className="mobile-nav-pref-label">{t('header.theme')}</span>
+                                <span className="mobile-nav-theme-value">
+                                    {theme === 'light' ? <FiMoon aria-hidden /> : <FiSun aria-hidden />}
+                                    <span>
+                                        {theme === 'light'
+                                            ? t('theme.switch_to_dark', 'Koyu')
+                                            : t('theme.switch_to_light', 'Açık')}
+                                    </span>
+                                </span>
+                            </button>
+                        </div>
+                        {!isAuthenticated && (
+                            <div className="mobile-nav-auth-row">
+                                <Link
+                                    to="/login"
+                                    className="mobile-nav-auth-btn mobile-nav-auth-btn--ghost"
+                                    onClick={closeMobileMenu}
+                                >
+                                    {t('header.login')}
+                                </Link>
+                                <Link
+                                    to="/register"
+                                    className="mobile-nav-auth-btn mobile-nav-auth-btn--primary"
+                                    onClick={closeMobileMenu}
+                                >
+                                    {t('header.register')}
+                                </Link>
+                            </div>
+                        )}
+                    </div>
                 </nav>
             </div>
         </header>
-        <AnimatePresence>
-            {mobileMenuOpen && isMobile ? (
-                <M.button
-                    type="button"
-                    className="mobile-nav-backdrop"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.2 }}
-                    onClick={closeMobileMenu}
-                    aria-label="Menüyü kapat"
-                />
-            ) : null}
-        </AnimatePresence>
         </>
     );
 };

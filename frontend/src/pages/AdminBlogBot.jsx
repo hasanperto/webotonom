@@ -16,12 +16,14 @@ import {
 import './AdminBlog.css';
 import './AdminBlogBot.css';
 
-const SOURCE_LABEL = 'fullprogramlarindir.net';
+const DEFAULT_SOURCE = 'fullprogramlarindir';
 
 const AdminBlogBot = () => {
     const navigate = useNavigate();
     const [items, setItems] = useState([]);
     const [page, setPage] = useState(1);
+    const [sourceId, setSourceId] = useState(DEFAULT_SOURCE);
+    const [sources, setSources] = useState([]);
     const [categoryPath, setCategoryPath] = useState('');
     const [categories, setCategories] = useState([{ label: 'Tümü', path: '' }]);
     const [loading, setLoading] = useState(true);
@@ -32,35 +34,62 @@ const AdminBlogBot = () => {
     const [selected, setSelected] = useState(() => new Set());
 
     useEffect(() => {
-        api.get('/admin/blog/news-bot/categories')
+        api.get('/admin/blog/news-bot/sources')
+            .then((res) => {
+                if (res.data.sources?.length) {
+                    setSources(res.data.sources);
+                }
+            })
+            .catch(() => {});
+    }, []);
+
+    useEffect(() => {
+        api.get('/admin/blog/news-bot/categories', { params: { source: sourceId } })
             .then((res) => {
                 if (res.data.categories?.length) {
                     setCategories(res.data.categories);
                 }
             })
             .catch(() => {});
-    }, []);
+    }, [sourceId]);
 
     const loadList = useCallback(async () => {
         try {
             setLoading(true);
             setError(null);
             const response = await api.get('/admin/blog/news-bot/list', {
-                params: { page, category: categoryPath || undefined },
+                params: {
+                    page,
+                    source: sourceId,
+                    category: categoryPath || undefined,
+                },
             });
             setItems(response.data.items || []);
             setSelected(new Set());
         } catch (err) {
             console.error('News bot list error:', err);
-            setError(
-                err.response?.data?.error ||
-                    'Kaynak siteden gönderiler alınamadı. Sunucunun internete eriştiğinden emin olun.'
-            );
+            const status = err.response?.status;
+            const apiError = err.response?.data?.error;
+            const details = err.response?.data?.details;
+            let message =
+                apiError ||
+                details ||
+                err.message ||
+                'Kaynak siteden gönderiler alınamadı.';
+            if (status === 404) {
+                message =
+                    'Haber Botu API bulunamadı (404). Sunucuda backend güncellenmeli ve PM2 backend klasöründen yeniden başlatılmalı.';
+            } else if (!err.response) {
+                message += ' Sunucuya bağlanılamadı veya istek zaman aşımına uğradı.';
+            } else if (details && apiError && details !== apiError) {
+                message = `${apiError}: ${details}`;
+            }
+            setError(message);
             setItems([]);
         } finally {
             setLoading(false);
         }
-    }, [page, categoryPath]);
+    }, [page, categoryPath, sourceId]);
 
     useEffect(() => {
         loadList();
@@ -75,10 +104,19 @@ const AdminBlogBot = () => {
         selectableItems.length > 0 &&
         selectableItems.every((item) => selected.has(item.url));
 
+    const handleSourceChange = (id) => {
+        setSourceId(id);
+        setCategoryPath('');
+        setPage(1);
+    };
+
     const handleCategoryChange = (path) => {
         setCategoryPath(path);
         setPage(1);
     };
+
+    const activeSourceLabel =
+        sources.find((s) => s.id === sourceId)?.label || sourceId;
 
     const toggleSelect = (url) => {
         setSelected((prev) => {
@@ -196,7 +234,7 @@ const AdminBlogBot = () => {
                             <FiZap className="bot-title-icon" /> Haber Botu
                         </h1>
                         <p className="page-subtitle-advanced">
-                            {SOURCE_LABEL} — toplu veya tek tek içe aktarın
+                            {activeSourceLabel} — toplu veya tek tek içe aktarın
                         </p>
                     </div>
                     <div className="header-actions">
@@ -266,9 +304,27 @@ const AdminBlogBot = () => {
                     )}
                 </div>
 
+                <div className="bot-filters bot-filters--source">
+                    <span className="bot-filters-label">Kaynak</span>
+                    <div className="bot-category-chips">
+                        {(sources.length ? sources : [{ id: DEFAULT_SOURCE, label: 'fullprogramlarindir.net' }]).map(
+                            (src) => (
+                                <button
+                                    key={src.id}
+                                    type="button"
+                                    className={`bot-chip bot-chip--source ${sourceId === src.id ? 'active' : ''}`}
+                                    onClick={() => handleSourceChange(src.id)}
+                                >
+                                    {src.label}
+                                </button>
+                            )
+                        )}
+                    </div>
+                </div>
+
                 <div className="bot-filters">
                     <span className="bot-filters-label">
-                        <FiFilter /> Kaynak kategori
+                        <FiFilter /> Kategori
                     </span>
                     <div className="bot-category-chips">
                         {categories.map((cat) => (

@@ -77,6 +77,29 @@
     transition: all 0.3s ease;
 }
 
+.demo-mode-card {
+    border-color: var(--primary, #6366f1);
+}
+
+.form-row-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.toggle-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem 1.5rem;
+}
+
+.toggle-list label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+}
+
 .payment-gateway-card:hover {
     border-color: #10b981;
     box-shadow: 0 4px 12px rgba(16, 185, 129, 0.1);

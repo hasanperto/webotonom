@@ -82,7 +82,46 @@ const CheckoutWizard = () => {
     // Order result
     const [orderResult, setOrderResult] = useState(null);
     const [processing, setProcessing] = useState(false);
+    const [checkoutPaymentMethods, setCheckoutPaymentMethods] = useState([
+        'credit_card', 'paypal', 'bank_transfer', 'balance'
+    ]);
+    const [paymentDemoMode, setPaymentDemoMode] = useState(true);
+    const [demoHints, setDemoHints] = useState(null);
+    const [paypalDemo, setPaypalDemo] = useState({ email: '', password: '' });
     const reduceMotion = useReducedMotion();
+
+    const loadCheckoutPaymentMethods = async () => {
+        try {
+            const res = await paymentsAPI.getMethods();
+            const ids = (res.data?.methods || [])
+                .filter((m) => m.enabled)
+                .map((m) => m.id);
+            if (ids.length > 0) {
+                setCheckoutPaymentMethods(ids);
+                setPaymentDemoMode(!!res.data?.demo_mode);
+                if (!ids.includes(paymentMethod)) {
+                    setPaymentMethod(ids[0]);
+                }
+            }
+            if (res.data?.demo_hints) {
+                const h = res.data.demo_hints;
+                setDemoHints(h);
+                setNewCard((prev) => ({
+                    ...prev,
+                    card_number: h.card_number || prev.card_number,
+                    card_holder: h.card_holder || prev.card_holder,
+                    expiry_date: h.expiry || prev.expiry_date,
+                    cvv: h.cvv || prev.cvv,
+                }));
+                setPaypalDemo({
+                    email: h.paypal_email || '',
+                    password: h.paypal_password || '',
+                });
+            }
+        } catch {
+            /* varsayılan dört yöntem */
+        }
+    };
 
     useEffect(() => {
         if (!isAuthenticated) {
@@ -137,7 +176,8 @@ const CheckoutWizard = () => {
                 loadSavedAddresses(),
                 loadSavedCards(),
                 loadUserBalance(),
-                loadBankAccounts()
+                loadBankAccounts(),
+                loadCheckoutPaymentMethods()
             ]);
         } catch (error) {
             console.error('Load data error:', error);
@@ -581,7 +621,9 @@ const CheckoutWizard = () => {
                             payment_method: paymentMethod,
                             payment_data: {
                                 card_id: selectedCardId,
-                                card_info: paymentMethod === 'credit_card' && !selectedCardId ? newCard : null
+                                card_info: paymentMethod === 'credit_card' && !selectedCardId ? newCard : null,
+                                paypal_email: paymentMethod === 'paypal' ? paypalDemo.email : undefined,
+                                paypal_password: paymentMethod === 'paypal' ? paypalDemo.password : undefined,
                             }
                         });
 
@@ -608,11 +650,15 @@ const CheckoutWizard = () => {
                             setCurrentStep(4);
                         }
                     } catch (paymentError) {
+                        const payErr =
+                            paymentError.response?.data?.error ||
+                            paymentError.response?.data?.details;
+                        if (payErr) alert(payErr);
                         setOrderResult({
                             order: orderResponse.data.order,
                             payment: null,
                             success: false,
-                            error: paymentError.response?.data?.error
+                            error: payErr,
                         });
                         setCurrentStep(4);
                     }
@@ -620,7 +666,11 @@ const CheckoutWizard = () => {
             }
         } catch (error) {
             console.error('Order creation error:', error);
-            alert(error.response?.data?.error || t('checkout.order_error'));
+            const msg =
+                error.response?.data?.error ||
+                error.response?.data?.details ||
+                t('checkout.order_error');
+            alert(msg);
         } finally {
             setProcessing(false);
         }
@@ -687,7 +737,7 @@ const CheckoutWizard = () => {
     }
 
     return (
-        <div className="checkout-wizard-page">
+        <div className={`checkout-wizard-page${currentStep < 4 ? ' checkout-wizard-page--flow' : ''}`}>
             <div className="container">
                 {/* Wizard Header */}
                 <LayoutGroup id="checkout-wizard-steps">
@@ -1277,7 +1327,7 @@ const CheckoutWizard = () => {
                     {currentStep === 3 && (
                         <M.div
                             key="wizard-step-3"
-                            className="wizard-step-content"
+                            className="wizard-step-content wizard-step-payment"
                             initial={reduceMotion ? false : { opacity: 0, x: 28 }}
                             animate={{ opacity: 1, x: 0 }}
                             exit={reduceMotion ? undefined : { opacity: 0, x: -20 }}
@@ -1292,65 +1342,88 @@ const CheckoutWizard = () => {
                                         </h5>
                                     </div>
 
-                                    {/* Payment Tabs */}
+                                    {/* Payment Tabs — API'den aktif yöntemler */}
                                     <div className="payment-methods-tabs">
-                                        <button
-                                            className={`payment-method-tab ${paymentMethod === 'credit_card' ? 'active' : ''}`}
-                                            onClick={() => setPaymentMethod('credit_card')}
-                                        >
-                                            <FiCreditCard className="tab-icon" />
-                                            <span>{t('checkout.credit_card')}</span>
-                                        </button>
-                                        <button
-                                            className={`payment-method-tab ${paymentMethod === 'paypal' ? 'active' : ''}`}
-                                            onClick={() => setPaymentMethod('paypal')}
-                                        >
-                                            <span className="tab-icon">💳</span>
-                                            <span>{t('checkout.paypal')}</span>
-                                        </button>
-                                        <button
-                                            className={`payment-method-tab ${paymentMethod === 'bank_transfer' ? 'active' : ''}`}
-                                            onClick={() => setPaymentMethod('bank_transfer')}
-                                        >
-                                            <span className="tab-icon">🏦</span>
-                                            <span>{t('checkout.bank_transfer')}</span>
-                                        </button>
-                                        <button
-                                            className={`payment-method-tab ${paymentMethod === 'balance' ? 'active' : ''} ${userBalance < totals.total ? 'disabled' : ''}`}
-                                            onClick={() => {
-                                                if (userBalance >= totals.total) {
-                                                    setPaymentMethod('balance');
-                                                }
-                                            }}
-                                            disabled={userBalance < totals.total}
-                                            title={userBalance < totals.total ? `${t('checkout.insufficient_balance')} (${formatPrice(userBalance)} / ${formatPrice(totals.total)})` : ''}
-                                        >
-                                            <span className="tab-icon">💰</span>
-                                            {userBalance >= totals.total ? (
-                                                <span>
-                                                    <span>{t('checkout.balance')}</span>
-                                                    <span className="balance-amount">{formatPrice(userBalance)}</span>
-                                                </span>
-                                            ) : (
-                                                <span>
-                                                    <span>{t('checkout.balance')}</span>
-                                                    <span className="balance-amount insufficient">{formatPrice(userBalance)}</span>
-                                                </span>
-                                            )}
-                                        </button>
+                                        {checkoutPaymentMethods.includes('credit_card') && (
+                                            <button
+                                                type="button"
+                                                className={`payment-method-tab ${paymentMethod === 'credit_card' ? 'active' : ''}`}
+                                                onClick={() => setPaymentMethod('credit_card')}
+                                            >
+                                                <FiCreditCard className="tab-icon" />
+                                                <span>{t('checkout.credit_card')}</span>
+                                            </button>
+                                        )}
+                                        {checkoutPaymentMethods.includes('paypal') && (
+                                            <button
+                                                type="button"
+                                                className={`payment-method-tab ${paymentMethod === 'paypal' ? 'active' : ''}`}
+                                                onClick={() => setPaymentMethod('paypal')}
+                                            >
+                                                <span className="tab-icon">💳</span>
+                                                <span>{t('checkout.paypal')}</span>
+                                            </button>
+                                        )}
+                                        {checkoutPaymentMethods.includes('bank_transfer') && (
+                                            <button
+                                                type="button"
+                                                className={`payment-method-tab ${paymentMethod === 'bank_transfer' ? 'active' : ''}`}
+                                                onClick={() => setPaymentMethod('bank_transfer')}
+                                            >
+                                                <span className="tab-icon">🏦</span>
+                                                <span>{t('checkout.bank_transfer')}</span>
+                                            </button>
+                                        )}
+                                        {checkoutPaymentMethods.includes('balance') && (
+                                            <button
+                                                type="button"
+                                                className={`payment-method-tab ${paymentMethod === 'balance' ? 'active' : ''} ${userBalance < totals.total ? 'disabled' : ''}`}
+                                                onClick={() => {
+                                                    if (userBalance >= totals.total) {
+                                                        setPaymentMethod('balance');
+                                                    }
+                                                }}
+                                                disabled={userBalance < totals.total}
+                                                title={userBalance < totals.total ? `${t('checkout.insufficient_balance')} (${formatPrice(userBalance)} / ${formatPrice(totals.total)})` : ''}
+                                            >
+                                                <span className="tab-icon">💰</span>
+                                                {userBalance >= totals.total ? (
+                                                    <span>
+                                                        <span>{t('checkout.balance')}</span>
+                                                        <span className="balance-amount">{formatPrice(userBalance)}</span>
+                                                    </span>
+                                                ) : (
+                                                    <span>
+                                                        <span>{t('checkout.balance')}</span>
+                                                        <span className="balance-amount insufficient">{formatPrice(userBalance)}</span>
+                                                    </span>
+                                                )}
+                                            </button>
+                                        )}
                                     </div>
+
+                                    {paymentDemoMode && (
+                                        <div className="payment-demo-hint-box">
+                                            <p className="payment-demo-hint">
+                                                {t('checkout.payment_demo_hint', 'Demo mod: gercek tahsilat yapilmaz. Asagidaki test bilgileri otomatik dolduruldu.')}
+                                            </p>
+                                            {demoHints && paymentMethod === 'credit_card' && (
+                                                <p className="payment-demo-credentials">
+                                                    <strong>Test kart:</strong> {demoHints.card_number} · SKT {demoHints.expiry} · CVV {demoHints.cvv}
+                                                </p>
+                                            )}
+                                            {demoHints && paymentMethod === 'paypal' && (
+                                                <p className="payment-demo-credentials">
+                                                    <strong>Demo PayPal:</strong> {demoHints.paypal_email} / {demoHints.paypal_password}
+                                                </p>
+                                            )}
+                                        </div>
+                                    )}
 
                                     <div className="tab-content">
                                         {/* Credit Card */}
                                         {paymentMethod === 'credit_card' && (
                                             <div className="payment-tab-content">
-                                                <div className="step-title-wrapper">
-                                                    <h5 className="step-title">
-                                                        <FiCreditCard className="step-title-icon" />
-                                                        {t('checkout.payment_method')}
-                                                    </h5>
-                                                </div>
-
                                                 {/* Saved Cards */}
                                                 {savedCards.length > 0 && (
                                                     <div className="saved-cards-section">
@@ -1439,7 +1512,32 @@ const CheckoutWizard = () => {
                                                         </small>
                                                     </div>
                                                 </div>
-                                                <p className="text-muted">{t('checkout.paypal_click_button')}</p>
+                                                {paymentDemoMode ? (
+                                                    <div className="paypal-demo-fields">
+                                                        <div className="form-group">
+                                                            <label>PayPal E-posta (demo)</label>
+                                                            <input
+                                                                type="email"
+                                                                className="form-control"
+                                                                value={paypalDemo.email}
+                                                                onChange={(e) => setPaypalDemo({ ...paypalDemo, email: e.target.value })}
+                                                                autoComplete="username"
+                                                            />
+                                                        </div>
+                                                        <div className="form-group">
+                                                            <label>PayPal Sifre (demo)</label>
+                                                            <input
+                                                                type="password"
+                                                                className="form-control"
+                                                                value={paypalDemo.password}
+                                                                onChange={(e) => setPaypalDemo({ ...paypalDemo, password: e.target.value })}
+                                                                autoComplete="current-password"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <p className="text-muted">{t('checkout.paypal_click_button')}</p>
+                                                )}
                                             </div>
                                         )}
 
@@ -1899,7 +1997,7 @@ const CheckoutWizard = () => {
                     {/* Add Address Modal */}
                     {showAddAddressModal && (
                         <div className="modal-overlay" onClick={() => setShowAddAddressModal(false)}>
-                            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                            <div className="modal-content address-modal" onClick={(e) => e.stopPropagation()}>
                                 <div className="modal-header">
                                     <h5>{t('checkout.add_new_address')}</h5>
                                     <button
@@ -2213,6 +2311,35 @@ const CheckoutWizard = () => {
                         </div>
                     )}
                 </div>
+
+                {currentStep >= 1 && currentStep <= 3 && (
+                    <div className="checkout-mobile-action-bar" role="region" aria-label={t('checkout.order_summary')}>
+                        <div className="checkout-mobile-action-inner">
+                            <div className="checkout-mobile-total">
+                                <span className="checkout-mobile-total-label">{t('checkout.total')}</span>
+                                <span className="checkout-mobile-total-value">{formatPrice(totals.total)}</span>
+                            </div>
+                            {currentStep < 3 ? (
+                                <button
+                                    type="button"
+                                    className="btn btn-primary checkout-mobile-action-btn"
+                                    onClick={handleNextStep}
+                                >
+                                    {t('checkout.continue')}
+                                </button>
+                            ) : (
+                                <button
+                                    type="button"
+                                    className="btn btn-primary checkout-mobile-action-btn"
+                                    onClick={handleProcessPayment}
+                                    disabled={processing || (paymentMethod === 'balance' && userBalance < totals.total) || !termsAccepted}
+                                >
+                                    {processing ? t('checkout.processing') : t('checkout.complete_payment')}
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                )}
             </div>
 
         </div>

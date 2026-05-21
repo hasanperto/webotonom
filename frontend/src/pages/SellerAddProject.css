@@ -641,6 +641,20 @@
     margin-top: 1rem;
 }
 
+.info-box--admin {
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.08) 0%, rgba(105, 108, 255, 0.06) 100%);
+    border-color: rgba(34, 197, 94, 0.35);
+}
+
+.info-box--admin select {
+    width: 100%;
+    max-width: 320px;
+    margin-top: 0.35rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    border: 1px solid var(--border-color, #e5e7eb);
+}
+
 .info-box h3 {
     font-size: 1.25rem;
     font-weight: 700;

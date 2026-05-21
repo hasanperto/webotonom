@@ -869,10 +869,40 @@
 }
 
 /* Tab Content İçerik Stilleri */
+.project-detail-page.vuexy-style .tab-content .project-description,
+.project-detail-page.vuexy-style .tab-content .project-description > div {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    display: block !important;
+    -webkit-line-clamp: unset !important;
+    line-clamp: unset !important;
+    text-overflow: unset !important;
+}
+
 .project-detail-page.vuexy-style .tab-content .project-description {
     line-height: 1.8;
     color: var(--text-color, #333);
     font-size: clamp(0.9rem, 2vw, 1rem);
+    padding-bottom: 0.5rem;
+}
+
+.project-detail-page.vuexy-style .project-description .project-desc-h2 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin: 1.25rem 0 0.75rem;
+    padding-top: 0.25rem;
+}
+
+.project-detail-page.vuexy-style .project-description .project-desc-h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 1rem 0 0.5rem;
+}
+
+.project-detail-page.vuexy-style .project-description .project-desc-list {
+    margin: 0.5rem 0 1rem 1.25rem;
+    padding: 0;
 }
 
 [data-theme="dark"] .project-detail-page.vuexy-style .tab-content .project-description {
@@ -2293,6 +2323,15 @@
 
 .project-detail-tab-motion-pane {
     min-height: 1.5rem;
+    height: auto;
+    max-height: none;
+    overflow: visible;
+}
+
+.tab-content.project-detail-tab-content {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
 }
 
 .project-detail-cta-col {
@@ -2307,30 +2346,20 @@
     }
 
     .project-detail-page.vuexy-style {
-        padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
+        padding-bottom: calc(6.25rem + env(safe-area-inset-bottom, 0px));
     }
 
     .project-detail-mobile-cta {
-        display: flex !important;
-        align-items: center;
+        display: block !important;
     }
 
     .project-detail-mobile-cta-actions {
-        max-width: none;
-        flex: 1.35;
+        flex: 1;
         min-width: 0;
     }
 
     .project-detail-mobile-cta-auth {
-        display: flex;
-        flex-direction: column;
-        gap: 0.45rem;
-        width: 100%;
-    }
-
-    .project-detail-mobile-cta-auth .btn {
-        min-height: 44px;
-        font-weight: 600;
+        flex-direction: row;
     }
 
     .project-detail-page.vuexy-style .project-detail-primary-actions {
@@ -2699,8 +2728,11 @@
             0 1px 2px rgba(15, 23, 42, 0.06),
             0 8px 24px rgba(15, 23, 42, 0.08) !important;
         margin-bottom: 0.75rem !important;
-        overflow: hidden;
+        overflow: visible;
         background: var(--card-bg);
+        height: auto !important;
+        min-height: 0 !important;
+        max-height: none !important;
     }
 
     [data-theme='dark'] .project-detail-tabs-card {
@@ -2711,6 +2743,9 @@
 
     .project-detail-tabs-card-body {
         padding: 0.5rem 0.55rem 0.65rem !important;
+        height: auto !important;
+        max-height: none !important;
+        overflow: visible !important;
     }
 
     .project-detail-tabs-wrap {
@@ -2817,6 +2852,15 @@
         padding-top: 0.45rem;
         margin-top: 0;
         border-top: 1px solid color-mix(in srgb, var(--border-color) 80%, transparent);
+        height: auto !important;
+        max-height: none !important;
+        overflow: visible !important;
+    }
+
+    .project-detail-tab-motion-pane {
+        height: auto !important;
+        max-height: none !important;
+        overflow: visible !important;
     }
 
     .project-detail-page.vuexy-style .tab-content .project-description {
@@ -2838,12 +2882,36 @@
         font-size: 0.9rem !important;
     }
 
+    .project-detail-mobile-cta {
+        left: 0.55rem;
+        right: 0.55rem;
+        padding: 0.45rem 0.7rem 0.75rem;
+        border-radius: 18px;
+    }
+
     .project-detail-mobile-cta-inner {
-        gap: 0.55rem;
+        gap: 0.5rem;
+        align-items: center;
+    }
+
+    .project-detail-mobile-cta-meta {
+        max-width: 38%;
     }
 
     .project-detail-mobile-cta-price {
-        font-size: 0.82rem;
+        font-size: 0.9rem;
+    }
+
+    .project-detail-mobile-cta-btn {
+        min-height: 44px;
+        font-size: 0.8rem;
+        padding: 0.5rem 0.65rem;
+        border-radius: 12px;
+    }
+
+    .project-detail-mobile-cta-auth .project-detail-mobile-cta-btn span {
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .project-detail-page.vuexy-style .col-12 > .card:not(.mb-4) .card-body {
@@ -2883,45 +2951,199 @@
     }
 }
 
-/* display sadece medya sorgularında: base'de none olursa mobil kuralı eziliyor */
+/* Mobil alt CTA — yüzen cam kart */
 .project-detail-mobile-cta {
     position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    left: 0.75rem;
+    right: 0.75rem;
+    bottom: calc(0.65rem + env(safe-area-inset-bottom, 0px));
     z-index: 1020;
-    padding: 0.65rem 1rem calc(0.65rem + env(safe-area-inset-bottom, 0px));
-    background: rgba(255, 255, 255, 0.96);
-    border-top: 1px solid rgba(0, 0, 0, 0.08);
-    box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.08);
-    backdrop-filter: blur(10px);
+    padding: 0.5rem 0.85rem 0.85rem;
+    border-radius: 20px;
+    background: color-mix(in srgb, var(--card-bg, #fff) 92%, transparent);
+    border: 1px solid color-mix(in srgb, var(--border-color, #e2e8f0) 70%, transparent);
+    box-shadow:
+        0 4px 6px rgba(15, 23, 42, 0.04),
+        0 16px 40px rgba(15, 23, 42, 0.12);
+    backdrop-filter: blur(16px) saturate(1.2);
+    -webkit-backdrop-filter: blur(16px) saturate(1.2);
 }
 
 [data-theme='dark'] .project-detail-mobile-cta {
-    background: rgba(30, 30, 40, 0.97);
-    border-top-color: rgba(255, 255, 255, 0.08);
-    box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.35);
+    background: color-mix(in srgb, var(--card-bg, #1e1e28) 88%, transparent);
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow:
+        0 4px 6px rgba(0, 0, 0, 0.2),
+        0 16px 40px rgba(0, 0, 0, 0.45);
+}
+
+.project-detail-mobile-cta-handle {
+    width: 36px;
+    height: 4px;
+    margin: 0 auto 0.55rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--text-color, #64748b) 28%, transparent);
 }
 
 .project-detail-mobile-cta-inner {
     max-width: 1400px;
     margin: 0 auto;
     display: flex;
+    align-items: stretch;
+    gap: 0.65rem;
+}
+
+.project-detail-mobile-cta-meta {
+    flex: 0 0 auto;
+    display: flex;
     align-items: center;
-    gap: 0.75rem;
+    min-width: 0;
+    max-width: 42%;
+}
+
+.project-detail-mobile-cta-price-block {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    min-width: 0;
+}
+
+.project-detail-mobile-cta-label {
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: color-mix(in srgb, var(--text-color, #64748b) 65%, transparent);
+    line-height: 1.2;
 }
 
 .project-detail-mobile-cta-price {
-    flex: 1;
-    min-width: 0;
-    font-weight: 600;
-    font-size: 0.95rem;
+    font-weight: 700;
+    font-size: 1rem;
+    line-height: 1.2;
+    color: var(--text-color, #0f172a);
+    letter-spacing: -0.02em;
+}
+
+.project-detail-mobile-cta-price-sep {
+    opacity: 0.45;
+    margin: 0 0.15rem;
+    font-weight: 500;
+}
+
+.project-detail-mobile-cta-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.4rem 0.65rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.project-detail-mobile-cta-badge--free {
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.18), rgba(16, 185, 129, 0.08));
+    color: #15803d;
+    border: 1px solid rgba(34, 197, 94, 0.35);
+}
+
+[data-theme='dark'] .project-detail-mobile-cta-badge--free {
+    color: #4ade80;
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.22), rgba(16, 185, 129, 0.1));
+}
+
+.project-detail-mobile-cta-badge svg {
+    width: 1rem;
+    height: 1rem;
+    flex-shrink: 0;
 }
 
 .project-detail-mobile-cta-actions {
-    flex: 1.15;
+    flex: 1;
     min-width: 0;
-    max-width: 240px;
+    display: flex;
+    align-items: stretch;
+}
+
+.project-detail-mobile-cta-auth {
+    display: flex;
+    flex: 1;
+    gap: 0.45rem;
+    min-width: 0;
+}
+
+.project-detail-mobile-cta-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    min-height: 46px;
+    padding: 0.55rem 0.85rem;
+    border-radius: 14px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.2;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+    -webkit-tap-highlight-color: transparent;
+    white-space: nowrap;
+}
+
+.project-detail-mobile-cta-btn svg {
+    width: 1.1rem;
+    height: 1.1rem;
+    flex-shrink: 0;
+}
+
+.project-detail-mobile-cta-btn:active:not(:disabled) {
+    transform: scale(0.97);
+}
+
+.project-detail-mobile-cta-btn--full {
+    flex: 1;
+    width: 100%;
+}
+
+.project-detail-mobile-cta-auth .project-detail-mobile-cta-btn {
+    flex: 1;
+    min-width: 0;
+}
+
+.project-detail-mobile-cta-btn--primary {
+    background: linear-gradient(135deg, #696cff 0%, #5a5de8 100%);
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(105, 108, 255, 0.4);
+}
+
+.project-detail-mobile-cta-btn--ghost {
+    background: color-mix(in srgb, var(--text-color, #64748b) 8%, transparent);
+    color: var(--text-color, #334155);
+    border: 1px solid color-mix(in srgb, var(--border-color, #e2e8f0) 90%, transparent);
+}
+
+[data-theme='dark'] .project-detail-mobile-cta-btn--ghost {
+    color: var(--text-color, #e2e8f0);
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+.project-detail-mobile-cta-btn--success {
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(34, 197, 94, 0.35);
+}
+
+.project-detail-mobile-cta-btn--donate {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35);
+}
+
+.project-detail-mobile-cta-btn:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
 }
 
 @media (prefers-reduced-motion: reduce) {

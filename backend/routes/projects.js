@@ -1,28 +1,26 @@
 import express from 'express';
 import pool from '../config/database.js';
 import { authenticate } from '../middleware/auth.js';
+import { enrichProjectsList } from '../utils/projectListEnrich.js';
 
 const router = express.Router();
 
 // Tüm projeleri getir
 router.get('/', async (req, res) => {
     try {
-        // Veritabanı bağlantısını test et
-        try {
-            await pool.execute('SELECT 1');
-        } catch (dbError) {
-            console.error('Database connection error:', dbError);
-            return res.status(500).json({
-                error: 'Veritabanı bağlantı hatası',
-                details: process.env.NODE_ENV === 'development' ? dbError.message : 'MySQL bağlantısı kurulamadı'
-            });
-        }
-
         const { category, search, page = 1, limit = 20, lang = 'tr' } = req.query;
-        const offset = (page - 1) * limit;
+        const safeLimit = Math.min(Math.max(parseInt(limit, 10) || 20, 1), 100);
+        const offset = (page - 1) * safeLimit;
 
         let query = `
-            SELECT p.*, u.username, c.name as category_name,
+            SELECT p.id, p.title, p.slug, p.short_description,
+            LEFT(p.description, 600) AS description,
+            p.price, p.discount_price, p.currency, p.status,
+            p.completion_percentage, p.donation_target, p.created_at, p.updated_at,
+            p.user_id, p.category_id, p.view_count, p.download_count,
+            p.rating, p.rating_count, p.featured, p.demo_url, p.video_url,
+            p.license_type, p.version,
+            u.username, c.name as category_name,
             (SELECT image_path FROM project_images WHERE project_id = p.id AND is_primary = 1 LIMIT 1) as primary_image
             FROM projects p
             LEFT JOIN users u ON p.user_id = u.id
@@ -42,54 +40,10 @@ router.get('/', async (req, res) => {
         }
 
         query += ' ORDER BY p.created_at DESC LIMIT ? OFFSET ?';
-        params.push(parseInt(limit), parseInt(offset));
+        params.push(safeLimit, offset);
 
         const [projects] = await pool.execute(query, params);
-
-        // Her proje için görselleri ve teknolojileri getir
-        for (let project of projects) {
-            // Primary image URL'ini düzelt
-            if (project.primary_image) {
-                project.primary_image = `/uploads/${project.primary_image}`;
-            }
-
-            const [images] = await pool.execute(
-                'SELECT image_path, is_primary, sort_order FROM project_images WHERE project_id = ? ORDER BY sort_order ASC, is_primary DESC LIMIT 5',
-                [project.id]
-            );
-            // URL'leri düzelt: /uploads/ prefix ekle
-            project.images = images.map(img => ({
-                ...img,
-                image_path: img.image_path ? `/uploads/${img.image_path}` : null
-            }));
-
-            // Teknolojileri (tags) getir
-            const [tags] = await pool.execute(
-                `SELECT t.id, t.name, t.slug FROM tags t
-                 INNER JOIN project_tags pt ON t.id = pt.tag_id
-                 WHERE pt.project_id = ? ORDER BY t.name ASC LIMIT 10`,
-                [project.id]
-            );
-            project.tags = tags;
-
-            // Çevirileri getir
-            try {
-                const [transRows] = await pool.execute(
-                    `SELECT language_code, title, description, short_description
-                     FROM content_translations
-                     WHERE content_id = ? AND content_type = 'project' AND language_code = ?`,
-                    [project.id, lang]
-                );
-                if (transRows.length > 0) {
-                    const trans = transRows[0];
-                    if (trans.title) project.title = trans.title;
-                    if (trans.description) project.description = trans.description;
-                    if (trans.short_description) project.short_description = trans.short_description;
-                }
-            } catch (err) {
-                console.warn(`Translation fetch error for project ${project.id}:`, err.message);
-            }
-        }
+        await enrichProjectsList(projects, lang);
 
         // Toplam sayı
         let countQuery = 'SELECT COUNT(*) as total FROM projects p LEFT JOIN categories c ON p.category_id = c.id WHERE p.status IN (?, ?)';
@@ -112,7 +66,7 @@ router.get('/', async (req, res) => {
             projects,
             pagination: {
                 page: parseInt(page),
-                limit: parseInt(limit),
+                limit: safeLimit,
                 total,
                 pages: Math.ceil(total / limit)
             }
@@ -299,10 +253,7 @@ router.get('/:id', async (req, res) => {
                 [id, lang]
             );
             if (transRows.length > 0) {
-                const trans = transRows[0];
-                if (trans.title) project.title = trans.title;
-                if (trans.description) project.description = trans.description;
-                if (trans.short_description) project.short_description = trans.short_description;
+                applyProjectTranslation(project, transRows[0]);
             }
         } catch (err) {
             console.warn(`Translation fetch error for project ${id}:`, err.message);

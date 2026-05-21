@@ -405,8 +405,11 @@ router.post('/projects', upload.fields([
             return res.status(400).json({ error: 'Tüm zorunlu alanlar doldurulmalıdır (Türkçe)' });
         }
 
-        // Initialize status
-        const status = 'pending';
+        const allowedStatuses = ['pending', 'approved', 'rejected', 'active', 'inactive'];
+        let status = 'pending';
+        if (req.user.role === 'admin' && req.body.status && allowedStatuses.includes(req.body.status)) {
+            status = req.body.status;
+        }
 
         // Validate price or donation target
         if (completion_status === 'completed' && !price) {

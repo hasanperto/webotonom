@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import { sellerAPI } from '../api/seller';
 import { projectsAPI } from '../api/projects';
 import { translateText } from '../api/i18n';
 import SellerLayout from '../components/SellerLayout';
+import AdminLayout from '../components/AdminLayout';
 import { FiX, FiUpload, FiImage, FiSave, FiGlobe, FiCheck, FiLoader, FiStar } from 'react-icons/fi';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
@@ -16,6 +18,10 @@ import './SellerAddProject.css';
 
 const SellerAddProject = () => {
     const navigate = useNavigate();
+    const location = useLocation();
+    const { isAdmin } = useAuth();
+    const isAdminMode = location.pathname.includes('/admin/projects/') || isAdmin;
+    const backToListPath = isAdminMode ? '/admin/projects' : '/seller/projects';
     const [categories, setCategories] = useState([]);
     const [availableTags, setAvailableTags] = useState([]);
     const [selectedTags, setSelectedTags] = useState([]);
@@ -43,6 +49,7 @@ const SellerAddProject = () => {
         tags: [],
         completion_status: 'completed',
         completion_percentage: 100,
+        status: location.pathname.includes('/admin/projects/') ? 'approved' : 'pending',
         timeline: [], // [{ title, description, date, status: 'completed'|'pending' }]
         source_url: '',
         donation_target: '',
@@ -428,6 +435,10 @@ const SellerAddProject = () => {
                 submitData.append('timeline', JSON.stringify([]));
             }
 
+            if (isAdminMode) {
+                submitData.append('status', formData.status || 'approved');
+            }
+
             // Resimleri ekle
             uploadedImages.forEach((img, index) => {
                 submitData.append('gallery_images', img.file);
@@ -438,7 +449,7 @@ const SellerAddProject = () => {
 
             await sellerAPI.createProject(submitData);
             alert('Proje başarıyla oluşturuldu!');
-            navigate('/seller/projects');
+            navigate(backToListPath);
         } catch (error) {
             alert(error.response?.data?.error || 'Proje oluşturulurken hata oluştu');
         } finally {
@@ -472,18 +483,22 @@ const SellerAddProject = () => {
 
     const currentEditor = getCurrentEditor();
 
-    return (
-        <SellerLayout>
+    const formPage = (
             <div className="seller-add-project-page">
                 <div className="dashboard-content-wrapper">
                     <div className="page-header">
                         <div className="header-content">
                             <h1>Yeni Proje Ekle</h1>
-                            <p>Çok dilli proje oluşturun ve satışa başlayın</p>
+                            <p>
+                                {isAdminMode
+                                    ? 'Admin panelinden yeni proje oluşturun'
+                                    : 'Çok dilli proje oluşturun ve satışa başlayın'}
+                            </p>
                         </div>
                         <button
+                            type="button"
                             className="btn btn-outline"
-                            onClick={() => navigate('/seller/projects')}
+                            onClick={() => navigate(backToListPath)}
                         >
                             <FiX /> İptal
                         </button>
@@ -963,13 +978,41 @@ const SellerAddProject = () => {
                         </div>
 
                         <div className="form-section">
-                            <div className="info-box">
-                                <h3>📋 Proje Onay Süreci</h3>
-                                <p>Projeniz kaydedildikten sonra <strong>"Beklemede"</strong> durumuna alınacaktır. Admin tarafından onaylandıktan sonra yayınlanacaktır.</p>
-                                <p className="info-note">
-                                    <strong>Not:</strong> Tamamlanma yüzdesi, bağış hedefi, indirme limiti ve öne çıkan proje ayarları admin panelinden yönetilir.
-                                </p>
-                            </div>
+                            {isAdminMode ? (
+                                <div className="info-box info-box--admin">
+                                    <h3>⚙️ Yayın ve Onay</h3>
+                                    <p>Admin olarak projeyi kayıt anında onaylayabilir veya beklemede bırakabilirsiniz.</p>
+                                    <div className="form-group" style={{ marginTop: '1rem' }}>
+                                        <label htmlFor="project-status">Proje durumu</label>
+                                        <select
+                                            id="project-status"
+                                            value={formData.status}
+                                            onChange={(e) =>
+                                                setFormData({ ...formData, status: e.target.value })
+                                            }
+                                        >
+                                            <option value="pending">Beklemede</option>
+                                            <option value="approved">Onaylandı</option>
+                                            <option value="active">Aktif</option>
+                                            <option value="rejected">Reddedildi</option>
+                                            <option value="inactive">Pasif</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="info-box">
+                                    <h3>📋 Proje Onay Süreci</h3>
+                                    <p>
+                                        Projeniz kaydedildikten sonra <strong>&quot;Beklemede&quot;</strong>{' '}
+                                        durumuna alınacaktır. Admin tarafından onaylandıktan sonra
+                                        yayınlanacaktır.
+                                    </p>
+                                    <p className="info-note">
+                                        <strong>Not:</strong> Tamamlanma yüzdesi, bağış hedefi, indirme
+                                        limiti ve öne çıkan proje ayarları admin panelinden yönetilir.
+                                    </p>
+                                </div>
+                            )}
                         </div>
 
                         <div className="form-section">
@@ -1180,7 +1223,7 @@ const SellerAddProject = () => {
                             <button
                                 type="button"
                                 className="btn btn-outline"
-                                onClick={() => navigate('/seller/projects')}
+                                onClick={() => navigate(backToListPath)}
                             >
                                 İptal
                             </button>
@@ -1195,8 +1238,13 @@ const SellerAddProject = () => {
                     </form>
                 </div>
             </div>
-        </SellerLayout>
     );
+
+    if (isAdminMode) {
+        return <AdminLayout>{formPage}</AdminLayout>;
+    }
+
+    return <SellerLayout>{formPage}</SellerLayout>;
 };
 
 export default SellerAddProject;

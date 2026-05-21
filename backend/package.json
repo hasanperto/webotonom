@@ -6,7 +6,9 @@
   "type": "module",
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon server.js"
+    "start:prod": "node server.js",
+    "dev": "nodemon server.js",
+    "sunucu:hazirlik": "node scripts/sunucu-hazirlik.js"
   },
   "keywords": [],
   "author": "",
@@ -15,6 +17,7 @@
     "@google/generative-ai": "^0.24.1",
     "bcryptjs": "^2.4.3",
     "cheerio": "^1.2.0",
+    "compression": "^1.8.1",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",

@@ -49,8 +49,11 @@ $uploads = Join-Path $Stage "backend\public\uploads"
 New-Item -ItemType Directory -Path $uploads -Force | Out-Null
 Set-Content -Path (Join-Path $uploads ".gitkeep") -Value ""
 
-# Dokumantasyon
+# Deploy (PM2, nginx ornek, scriptler, .env sablonu)
+Write-Host "==> deploy/ -> paket"
+Copy-Item -Path (Join-Path $Root "deploy") -Destination (Join-Path $Stage "deploy") -Recurse -Force
 Copy-Item -Path (Join-Path $Root "deploy\SUNUCU.md") -Destination (Join-Path $Stage "SUNUCU.md") -Force
+Copy-Item -Path (Join-Path $Root "deploy\KONTROL_LISTESI.md") -Destination (Join-Path $Stage "KONTROL_LISTESI.md") -Force
 
 # Zip
 if (-not (Test-Path (Split-Path $ZipPath))) {
@@ -61,4 +64,5 @@ Compress-Archive -Path $Stage -DestinationPath $ZipPath -CompressionLevel Optima
 
 Write-Host ""
 Write-Host "Tamam. Paket: $ZipPath"
-Write-Host "Sunucuda acip SUNUCU.md dosyasini izleyin; backend icinde: npm ci --omit=dev && NODE_ENV=production node server.js"
+Write-Host "Sunucuda: chmod +x deploy/scripts/*.sh && ./deploy/scripts/sunucu-kurulum.sh ."
+Write-Host "Rehber: SUNUCU.md ve KONTROL_LISTESI.md"

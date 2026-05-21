@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import AdminLayout from '../components/AdminLayout';
 import api from '../api/axios';
+import { getImageUrl } from '../utils/api';
 import { useCurrency } from '../context/CurrencyContext';
 import { FiSave, FiRefreshCw, FiSliders, FiUpload, FiLink, FiImage, FiX, FiDollarSign } from 'react-icons/fi';
 import './AdminSettingsGeneral.css';
@@ -64,6 +65,14 @@ const AdminSettingsGeneral = () => {
         } finally {
             setUpdatingRates(false);
         }
+    };
+
+    const resolvePreviewUrl = (path) => {
+        if (!path) return '';
+        if (path.startsWith('blob:') || path.startsWith('data:') || path.startsWith('http://') || path.startsWith('https://')) {
+            return path;
+        }
+        return getImageUrl(path);
     };
 
     const loadSettings = async () => {
@@ -300,7 +309,7 @@ const AdminSettingsGeneral = () => {
                                     </label>
                                     {logoPreview && (
                                         <div className="logo-preview">
-                                            <img src={logoPreview} alt="Logo önizleme" />
+                                            <img src={resolvePreviewUrl(logoPreview)} alt="Logo önizleme" />
                                             <button
                                                 type="button"
                                                 className="remove-logo-btn"
@@ -316,7 +325,7 @@ const AdminSettingsGeneral = () => {
                             {logoPreview && (
                                 <div className="logo-preview-container">
                                     <p className="preview-label">Önizleme:</p>
-                                    <img src={logoPreview} alt="Logo önizleme" className="preview-image" />
+                                    <img src={resolvePreviewUrl(logoPreview)} alt="Logo önizleme" className="preview-image" />
                                 </div>
                             )}
                         </div>

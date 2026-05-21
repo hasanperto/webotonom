@@ -1604,6 +1604,34 @@
     line-height: 1;
 }
 
+.payment-demo-hint-box {
+    margin: 0 0 0.75rem;
+    padding: 0.5rem 0.65rem;
+    background: rgba(105, 108, 255, 0.06);
+    border-radius: 8px;
+    border: 1px dashed rgba(105, 108, 255, 0.25);
+}
+
+.payment-demo-hint {
+    margin: 0 0 0.35rem;
+    font-size: 0.72rem;
+    color: var(--text-secondary, #6b7280);
+    line-height: 1.35;
+}
+
+.payment-demo-credentials {
+    margin: 0;
+    font-size: 0.7rem;
+    color: var(--text-primary, #374151);
+    font-family: ui-monospace, monospace;
+}
+
+.paypal-demo-fields {
+    display: grid;
+    gap: 0.75rem;
+    max-width: 360px;
+}
+
 /* Payment Card Modern (Step 2 address card style) */
 .payment-card-modern {
     background: var(--card-bg, #fff);
@@ -2465,7 +2493,8 @@
     opacity: 0.6;
 }
 
-.form-label {
+.new-card-form-modern .form-label,
+.card-modal-content .form-label {
     display: block;
     font-size: 0.875rem;
     font-weight: 600;
@@ -2479,43 +2508,170 @@
     grid-column: 1 / -1;
 }
 
-/* Responsive Kart Modal */
+/* Mobil: kompakt adres / kart modalları */
 @media (max-width: 768px) {
+    .checkout-wizard-page .modal-overlay {
+        padding: 0;
+        align-items: flex-end;
+    }
+
+    .checkout-wizard-page .modal-content {
+        max-width: 100%;
+        width: 100%;
+        max-height: min(92dvh, 640px);
+        margin: 0;
+        border-radius: 14px 14px 0 0;
+        box-shadow: 0 -6px 28px rgba(0, 0, 0, 0.12);
+        display: flex;
+        flex-direction: column;
+    }
+
+    .checkout-wizard-page .modal-header {
+        flex-shrink: 0;
+        padding: 0.65rem 0.85rem;
+        border-bottom-width: 1px;
+    }
+
+    .checkout-wizard-page .modal-header h5 {
+        font-size: 0.95rem;
+        font-weight: 600;
+        background: none;
+        -webkit-text-fill-color: unset;
+        color: var(--text-color, #1a1a1a);
+    }
+
+    .checkout-wizard-page .modal-close {
+        font-size: 1.25rem;
+        padding: 0.15rem;
+    }
+
+    .checkout-wizard-page .modal-body {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        padding: 0.65rem 0.85rem 0.35rem;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .checkout-wizard-page .modal-footer {
+        flex-shrink: 0;
+        padding: 0.55rem 0.85rem calc(0.55rem + env(safe-area-inset-bottom, 0px));
+        gap: 0.5rem;
+        border-top-width: 1px;
+        background: var(--card-bg, #fff);
+    }
+
+    .checkout-wizard-page .modal-footer .btn {
+        flex: 1;
+        min-height: 40px;
+        padding: 0.5rem 0.65rem;
+        font-size: 0.8125rem;
+    }
+
+    .checkout-wizard-page .address-modal .new-address-form-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 0.45rem;
+    }
+
+    .checkout-wizard-page .address-modal .form-group-full {
+        grid-column: 1 / -1;
+    }
+
+    .checkout-wizard-page .modal-content .form-group {
+        min-width: 0;
+    }
+
+    .checkout-wizard-page .modal-content .form-label {
+        font-size: 0.7rem;
+        font-weight: 500;
+        margin-bottom: 0.2rem;
+        text-transform: none;
+        letter-spacing: 0;
+    }
+
+    .checkout-wizard-page .modal-content .form-control {
+        padding: 0.45rem 0.6rem;
+        font-size: 0.875rem;
+        border-width: 1px;
+        border-radius: 8px;
+    }
+
+    .checkout-wizard-page .modal-content .form-control:focus {
+        transform: none;
+        box-shadow: 0 0 0 2px rgba(105, 108, 255, 0.12);
+    }
+
+    .checkout-wizard-page .modal-content .form-check {
+        gap: 0.4rem;
+        align-items: center;
+    }
+
+    .checkout-wizard-page .modal-content .form-check-label {
+        font-size: 0.78rem;
+        line-height: 1.3;
+    }
+
+    .checkout-wizard-page .modal-content .form-check-input {
+        margin-top: 0;
+        width: 1rem;
+        height: 1rem;
+    }
+
+    /* Kart modal */
     .card-modal-content {
         max-width: 100%;
-        margin: 0.5rem;
+    }
+
+    .card-preview {
+        margin-bottom: 0.85rem;
     }
 
     .card-preview-front {
-        height: 180px;
-        padding: 1.5rem;
+        height: 150px;
+        padding: 1rem;
     }
 
     .card-preview-number {
-        font-size: 1.25rem;
+        font-size: 1.1rem;
         letter-spacing: 2px;
+        margin-bottom: 1rem;
     }
 
     .card-chip {
-        width: 40px;
-        height: 32px;
+        width: 36px;
+        height: 28px;
     }
 
     .card-logo {
-        font-size: 2rem;
+        font-size: 1.65rem;
+    }
+
+    .new-card-form-modern {
+        gap: 0.65rem;
+    }
+
+    .new-card-form-modern .form-label {
+        font-size: 0.7rem;
+        margin-bottom: 0.2rem;
+        text-transform: none;
+        letter-spacing: 0;
     }
 
     .form-group-row {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.45rem;
     }
 
-    .modal-body {
-        padding: 1.5rem;
+    .card-input {
+        padding: 0.45rem 0.6rem;
+        font-size: 0.875rem;
+        border-width: 1px;
+        border-radius: 8px;
     }
 
-    .modal-header,
-    .modal-footer {
-        padding: 1rem 1.5rem;
+    .card-input:focus {
+        transform: none;
+        box-shadow: 0 0 0 2px rgba(105, 108, 255, 0.12);
     }
 }
 
@@ -2523,21 +2679,22 @@
 @media (max-width: 1024px) {
     .wizard-header {
         flex-wrap: wrap;
-        gap: 1rem;
-        padding: 2rem 1rem;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+        padding: 1rem 0.75rem;
     }
 
     .step-line {
-        width: 50px;
+        width: 28px;
     }
 
     .wizard-step-content {
-        padding: 1.5rem;
+        padding: 1rem;
     }
 
     .checkout-layout {
         grid-template-columns: 1fr;
-        gap: 1.25rem;
+        gap: 0.85rem;
     }
 
     .checkout-sidebar {
@@ -2557,75 +2714,669 @@
     }
 }
 
+/* Mobil ödeme çubuğu (masaüstünde gizli) */
+.checkout-mobile-action-bar {
+    display: none;
+}
+
 @media (max-width: 768px) {
     .checkout-wizard-page {
-        padding: 1rem 0;
+        padding: 0.5rem 0;
+    }
+
+    .checkout-wizard-page--flow {
+        padding-bottom: calc(4.25rem + env(safe-area-inset-bottom, 0px));
+    }
+
+    .checkout-wizard-page::before {
+        height: 120px;
+    }
+
+    .checkout-wizard-page .container {
+        padding-left: 0.65rem;
+        padding-right: 0.65rem;
     }
 
     .wizard-header {
-        padding: 1rem 0;
+        margin-bottom: 0.65rem;
+        padding: 0.55rem 0.35rem;
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .step-trigger {
+        padding: 0.2rem;
+        gap: 0.2rem;
     }
 
     .step-icon {
-        width: 48px;
-        height: 48px;
-        font-size: 1.25rem;
+        width: 34px;
+        height: 34px;
+        font-size: 0.95rem;
+        border-width: 2px;
+    }
+
+    .step.active .step-icon {
+        transform: none;
+        box-shadow: 0 4px 12px rgba(105, 108, 255, 0.28);
     }
 
     .step-label {
-        font-size: 0.75rem;
+        font-size: 0.6rem;
+        max-width: 3.25rem;
+        text-align: center;
+        line-height: 1.15;
+        white-space: normal;
     }
 
     .step-line {
-        width: 30px;
+        width: 10px;
+        margin: 0 0.1rem;
+        font-size: 0.7rem;
+    }
+
+    .step-line::before {
+        display: none;
+    }
+
+    .wizard-content {
+        min-height: 0;
     }
 
     .wizard-step-content {
-        padding: 1rem;
+        padding: 0.65rem;
+        border-radius: 10px;
+        box-shadow: none;
+    }
+
+    .step-title-wrapper {
+        margin-bottom: 0.45rem;
+        padding-bottom: 0.4rem;
+    }
+
+    .step-title {
+        font-size: 0.9rem;
+        gap: 0.35rem;
+    }
+
+    .step-title-icon {
+        font-size: 1rem;
     }
 
     .checkout-layout {
         grid-template-columns: 1fr;
-        gap: 1rem;
-    }
-
-    .cart-item-card {
-        padding: 0.75rem;
-    }
-
-    .item-image-wrapper {
-        width: 60px;
-        height: 60px;
-    }
-
-    .cart-item-content {
-        flex-direction: column;
-    }
-
-    .item-image-wrapper {
-        width: 100%;
-        height: 200px;
+        gap: 0.55rem;
     }
 
     .checkout-sidebar {
         position: static;
-        margin-top: 2rem;
+        margin-top: 0;
+        gap: 0.45rem;
+    }
+
+    /* Yinelenen ürün listesi + büyük başlık gizle */
+    .checkout-sidebar .order-items-summary,
+    .checkout-sidebar .sidebar-section > h6:first-child {
+        display: none;
+    }
+
+    .sidebar-section {
+        padding: 0.6rem 0.65rem;
+        border-radius: 10px;
+    }
+
+    .summary-subtitle {
+        font-size: 0.68rem;
+        font-weight: 600;
+        margin-bottom: 0.35rem;
+        text-transform: none;
+        letter-spacing: 0;
+    }
+
+    .coupon-section {
+        margin-bottom: 0.5rem;
+        padding-bottom: 0.5rem;
+    }
+
+    .coupon-form {
+        gap: 0.4rem;
+    }
+
+    .coupon-form .input-group {
+        flex-direction: row;
+        gap: 0.35rem;
+    }
+
+    .coupon-form .form-control {
+        padding: 0.45rem 0.55rem;
+        font-size: 0.8125rem;
+        min-width: 0;
+    }
+
+    .coupon-form .btn {
+        padding: 0.45rem 0.6rem;
+        font-size: 0.75rem;
+        flex-shrink: 0;
+    }
+
+    .coupon-applied {
+        padding: 0.45rem 0.55rem;
+    }
+
+    .price-summary {
+        margin: 0;
+        padding: 0;
+        border: none;
+    }
+
+    .price-details {
+        gap: 0.15rem;
+    }
+
+    .price-row {
+        padding: 0.2rem 0;
+        font-size: 0.8125rem;
+        border-bottom: none;
+    }
+
+    .price-row dt,
+    .price-row dd {
+        font-size: 0.8125rem;
+    }
+
+    .price-row.total {
+        font-size: 0.875rem;
+        margin-top: 0.3rem;
+        padding-top: 0.35rem;
+        border-top: 1px solid var(--border-color, #e5e7eb);
+    }
+
+    .price-row.total dd {
+        font-size: 0.95rem;
+    }
+
+    .billing-info-summary,
+    .payment-info-summary {
+        margin-top: 0.5rem;
+    }
+
+    .billing-info-item,
+    .payment-info-item {
+        font-size: 0.78rem;
+        padding: 0.15rem 0;
+    }
+
+    .terms-section-sidebar {
+        padding: 0.35rem 0;
+    }
+
+    .terms-checkbox {
+        font-size: 0.72rem;
+        gap: 0.4rem;
+    }
+
+    .checkout-sidebar > .d-grid {
+        display: none;
+    }
+
+    /* Kompakt sepet satırı */
+    .cart-items-list {
+        gap: 0.45rem;
+    }
+
+    .cart-item-card {
+        padding: 0.5rem;
+        border-radius: 8px;
+    }
+
+    .cart-item-card:hover {
+        transform: none;
+        box-shadow: none;
+    }
+
+    .cart-item-content {
+        flex-direction: row;
+        align-items: center;
+        gap: 0.45rem;
+    }
+
+    .item-image-wrapper {
+        width: 48px;
+        height: 48px;
+        border-radius: 6px;
+    }
+
+    .item-details {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .item-title-row {
+        margin-bottom: 0.2rem;
+    }
+
+    .item-title-row h6 {
+        font-size: 0.8125rem;
+        line-height: 1.25;
+    }
+
+    .btn-remove-item {
+        font-size: 1rem;
+        padding: 0.15rem;
+    }
+
+    .item-meta {
+        display: none;
+    }
+
+    .item-quantity-row {
+        margin-top: 0;
+        gap: 0.3rem;
+    }
+
+    .item-quantity-row .text-muted {
+        display: none;
+    }
+
+    .quantity-btn {
+        width: 26px;
+        height: 26px;
+        font-size: 0.8rem;
+        border-radius: 6px;
+    }
+
+    .quantity-value {
+        min-width: 22px;
+        font-size: 0.75rem;
+    }
+
+    .item-price-section {
+        flex-shrink: 0;
+        align-self: center;
+    }
+
+    .price-new {
+        font-size: 0.875rem;
+    }
+
+    .price-old {
+        font-size: 0.7rem;
+    }
+
+    /* Adres / ödeme adımları */
+    .addresses-grid {
+        gap: 0.45rem;
+    }
+
+    .address-card-modern {
+        padding: 0.65rem;
+        border-radius: 10px;
+    }
+
+    .address-name {
+        font-size: 0.875rem;
+    }
+
+    .address-label,
+    .address-value {
+        font-size: 0.75rem;
+    }
+
+    .btn-add-address {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.8125rem;
     }
 
     .nav-pills {
-        flex-direction: column;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 0.35rem;
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.35rem;
     }
 
     .nav-link {
-        border-bottom: none;
-        border-left: 2px solid transparent;
-        margin-bottom: 0;
-        margin-left: -2px;
+        padding: 0.45rem 0.65rem;
+        font-size: 0.75rem;
+        border-left: none;
+        border-bottom: 2px solid transparent;
+        margin-left: 0;
     }
 
     .nav-link.active {
-        border-left-color: var(--primary-color, #696cff);
-        border-bottom-color: transparent;
+        border-left-color: transparent;
+        border-bottom-color: var(--primary-color, #696cff);
+    }
+
+    .saved-addresses-section,
+    .saved-cards-section {
+        margin-bottom: 0.75rem;
+    }
+
+    .section-subtitle {
+        font-size: 0.8rem;
+        margin-bottom: 0.4rem;
+    }
+
+    /* Sabit alt aksiyon */
+    .checkout-mobile-action-bar {
+        display: block;
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 100;
+        padding: 0.5rem 0.65rem calc(0.5rem + env(safe-area-inset-bottom, 0px));
+        background: var(--card-bg, #fff);
+        border-top: 1px solid var(--border-color, #e5e7eb);
+        box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.06);
+        backdrop-filter: blur(8px);
+    }
+
+    .checkout-mobile-action-inner {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .checkout-mobile-total {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        align-items: baseline;
+        gap: 0.3rem;
+    }
+
+    .checkout-mobile-total-label {
+        font-size: 0.7rem;
+        color: var(--text-secondary, #6b7280);
+    }
+
+    .checkout-mobile-total-label::after {
+        content: ':';
+    }
+
+    .checkout-mobile-total-value {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--primary-color, #696cff);
+    }
+
+    .checkout-mobile-action-btn {
+        flex-shrink: 0;
+        min-height: 40px;
+        padding: 0.45rem 0.75rem;
+        font-size: 0.8125rem;
+        font-weight: 600;
+        white-space: nowrap;
+        max-width: 58%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* —— Adım 3: Ödeme (minimal mobil) —— */
+    .wizard-step-payment .checkout-main > .step-title-wrapper {
+        margin-bottom: 0.35rem;
+        padding-bottom: 0.35rem;
+    }
+
+    .wizard-step-payment .checkout-main > .step-title-wrapper .step-title {
+        font-size: 0.85rem;
+    }
+
+    .wizard-step-payment .payment-methods-tabs {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.35rem;
+        margin-bottom: 0.45rem;
+        padding-bottom: 0;
+        border-bottom: none;
+    }
+
+    .wizard-step-payment .payment-method-tab {
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        gap: 0.15rem;
+        padding: 0.4rem 0.3rem;
+        min-height: 50px;
+        font-size: 0.65rem;
+        line-height: 1.2;
+        border-radius: 8px;
+    }
+
+    .wizard-step-payment .payment-method-tab .tab-icon {
+        font-size: 0.95rem;
+    }
+
+    .wizard-step-payment .payment-method-tab .balance-amount {
+        margin-left: 0;
+        display: block;
+        font-size: 0.58rem;
+        font-weight: 600;
+        line-height: 1.15;
+    }
+
+    .wizard-step-payment .payment-method-tab.active {
+        box-shadow: 0 2px 6px rgba(105, 108, 255, 0.2);
+    }
+
+    .wizard-step-payment .payment-tab-content {
+        padding: 0.25rem 0 0;
+    }
+
+    .wizard-step-payment .saved-cards-section {
+        margin-bottom: 0.45rem;
+    }
+
+    .wizard-step-payment .section-subtitle {
+        font-size: 0.72rem;
+        margin-bottom: 0.3rem;
+    }
+
+    .wizard-step-payment .cards-grid {
+        grid-template-columns: 1fr;
+        gap: 0.4rem;
+    }
+
+    .wizard-step-payment .payment-card-modern {
+        padding: 0.5rem 0.55rem;
+        border-radius: 8px;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    .wizard-step-payment .payment-card-modern:hover {
+        transform: none;
+    }
+
+    .wizard-step-payment .payment-card-header {
+        gap: 0.4rem;
+        align-items: center;
+    }
+
+    .wizard-step-payment .card-radio {
+        margin-top: 0;
+    }
+
+    .wizard-step-payment .card-radio input[type="radio"] {
+        width: 16px;
+        height: 16px;
+    }
+
+    .wizard-step-payment .card-name-row {
+        margin-bottom: 0.15rem;
+        gap: 0.3rem;
+    }
+
+    .wizard-step-payment .card-holder-name {
+        font-size: 0.8rem;
+    }
+
+    .wizard-step-payment .card-badges {
+        gap: 0.25rem;
+    }
+
+    .wizard-step-payment .badge-card-type,
+    .wizard-step-payment .badge-default {
+        font-size: 0.6rem;
+        padding: 0.1rem 0.3rem;
+    }
+
+    .wizard-step-payment .badge-default {
+        display: none;
+    }
+
+    .wizard-step-payment .card-details {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 0.15rem 0.35rem;
+    }
+
+    .wizard-step-payment .card-line-item {
+        font-size: 0.68rem;
+        gap: 0.2rem;
+    }
+
+    .wizard-step-payment .card-label {
+        min-width: 0;
+        font-weight: 500;
+        font-size: 0.65rem;
+    }
+
+    .wizard-step-payment .card-line-item .card-label {
+        display: none;
+    }
+
+    .wizard-step-payment .card-value {
+        color: var(--text-color, #1a1a1a);
+    }
+
+    .wizard-step-payment .card-line-item + .card-line-item::before {
+        content: '·';
+        margin-right: 0.2rem;
+        color: var(--text-secondary, #9ca3af);
+    }
+
+    .wizard-step-payment .card-delete-btn {
+        padding: 0.3rem;
+        font-size: 0.9rem;
+    }
+
+    .wizard-step-payment .add-card-section {
+        margin-top: 0.45rem;
+    }
+
+    .wizard-step-payment .btn-add-card {
+        width: 100%;
+        justify-content: center;
+        padding: 0.45rem 0.65rem;
+        font-size: 0.78rem;
+        border-radius: 8px;
+    }
+
+    .wizard-step-payment .btn-add-card:hover {
+        transform: none;
+    }
+
+    /* PayPal / havale / bakiye uyarıları */
+    .wizard-step-payment .payment-tab-content .alert {
+        padding: 0.5rem 0.6rem;
+        margin-bottom: 0.4rem;
+        border-radius: 8px;
+        font-size: 0.75rem;
+        line-height: 1.35;
+    }
+
+    .wizard-step-payment .payment-tab-content .alert h6 {
+        font-size: 0.78rem;
+        margin: 0 0 0.25rem;
+    }
+
+    .wizard-step-payment .payment-tab-content .alert p,
+    .wizard-step-payment .payment-tab-content .alert li {
+        font-size: 0.72rem;
+        margin-bottom: 0.2rem;
+    }
+
+    .wizard-step-payment .payment-tab-content .alert .mb-2,
+    .wizard-step-payment .payment-tab-content .alert .mb-3 {
+        margin-bottom: 0.35rem !important;
+    }
+
+    .wizard-step-payment .payment-tab-content .text-muted {
+        display: none;
+    }
+
+    .wizard-step-payment .bank-account-item {
+        margin-bottom: 0.5rem !important;
+    }
+
+    .wizard-step-payment .bank-account-item ul {
+        padding-left: 0;
+        list-style: none;
+    }
+
+    .wizard-step-payment .balance-payment-header {
+        margin-bottom: 0.35rem;
+    }
+
+    .wizard-step-payment .balance-payment-header h6 {
+        font-size: 0.78rem;
+    }
+
+    .wizard-step-payment .balance-icon {
+        font-size: 1rem;
+    }
+
+    .wizard-step-payment .balance-details {
+        padding: 0.45rem 0.55rem;
+        margin-top: 0.35rem;
+    }
+
+    .wizard-step-payment .balance-row {
+        padding: 0.2rem 0;
+    }
+
+    .wizard-step-payment .balance-label {
+        font-size: 0.72rem;
+    }
+
+    .wizard-step-payment .balance-value {
+        font-size: 0.78rem;
+    }
+
+    .wizard-step-payment .balance-row.total {
+        margin-top: 0.25rem;
+        padding-top: 0.35rem;
+    }
+
+    .wizard-step-payment .alert .btn {
+        padding: 0.4rem 0.65rem;
+        font-size: 0.75rem;
+    }
+
+    /* Sidebar: tekrarlayan fatura/ödeme özeti gizle */
+    .wizard-step-payment .billing-info-summary,
+    .wizard-step-payment .payment-info-summary {
+        display: none;
+    }
+
+    .wizard-step-payment .checkout-sidebar .sidebar-section {
+        padding: 0.5rem 0.6rem;
+    }
+
+    .wizard-step-payment .price-summary .summary-subtitle {
+        display: none;
+    }
+
+    .wizard-step-payment .terms-section-sidebar {
+        margin-top: 0.25rem;
+        padding-top: 0.35rem;
+        border-top: 1px solid var(--border-color, #e5e7eb);
     }
 }
 

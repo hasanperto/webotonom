@@ -204,32 +204,49 @@ router.post('/', authenticate, async (req, res) => {
 
         const orderId = orderResult.insertId;
 
-        // Sipariş kalemlerini ekle (plan_id desteği ile)
+        const [planCol] = await pool.execute(
+            "SHOW COLUMNS FROM order_items LIKE 'plan_id'"
+        );
+        const hasPlanIdCol = planCol.length > 0;
+
         for (const item of orderItems) {
-            await pool.execute(
-                `INSERT INTO order_items (order_id, project_id, plan_id, price, quantity, subtotal)
-                 VALUES (?, ?, ?, ?, ?, ?)`,
-                [orderId, item.project_id, item.plan_id, item.price, item.quantity, item.subtotal]
-            );
+            if (hasPlanIdCol) {
+                await pool.execute(
+                    `INSERT INTO order_items (order_id, project_id, plan_id, price, quantity, subtotal)
+                     VALUES (?, ?, ?, ?, ?, ?)`,
+                    [orderId, item.project_id, item.plan_id, item.price, item.quantity, item.subtotal]
+                );
+            } else if (item.plan_id) {
+                return res.status(400).json({
+                    error: 'Abonelik plani siparisi icin veritabani guncellemesi gerekli. Calistirin: node scripts/fix-order-items-plan-id.js',
+                });
+            } else {
+                await pool.execute(
+                    `INSERT INTO order_items (order_id, project_id, price, quantity, subtotal)
+                     VALUES (?, ?, ?, ?, ?)`,
+                    [orderId, item.project_id, item.price, item.quantity, item.subtotal]
+                );
+            }
         }
 
         // Sepeti temizle
         await pool.execute('DELETE FROM cart WHERE user_id = ?', [userId]);
 
-        // Transaction kaydı oluştur
-        // Bakiye ile ödeme yapıldıysa negatif tutar, diğer durumlarda pozitif
         const transactionAmount = payment_method === 'balance' ? -finalAmount : finalAmount;
+        const transactionStatus =
+            paymentStatus === 'paid' ? 'completed' : paymentStatus === 'failed' ? 'failed' : 'pending';
+
         await pool.execute(
             `INSERT INTO transactions (user_id, order_id, type, amount, currency, status, payment_method, description)
              VALUES (?, ?, 'purchase', ?, ?, ?, ?, ?)`,
             [
-                userId, 
-                orderId, 
-                transactionAmount, 
-                currency, 
-                paymentStatus, 
-                payment_method || 'credit_card', 
-                `Sipariş #${orderNumber}`
+                userId,
+                orderId,
+                transactionAmount,
+                currency,
+                transactionStatus,
+                payment_method || 'credit_card',
+                `Sipariş #${orderNumber}`,
             ]
         );
 
@@ -257,7 +274,10 @@ router.post('/', authenticate, async (req, res) => {
         });
     } catch (error) {
         console.error('Create order error:', error);
-        res.status(500).json({ error: 'Sunucu hatası' });
+        res.status(500).json({
+            error: 'Sunucu hatası',
+            details: process.env.NODE_ENV === 'development' ? error.message : undefined,
+        });
     }
 });
 

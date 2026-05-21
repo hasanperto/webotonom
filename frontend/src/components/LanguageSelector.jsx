@@ -3,7 +3,7 @@ import { FiGlobe, FiChevronDown } from 'react-icons/fi';
 import { useLanguage } from '../context/LanguageContext';
 import './LanguageSelector.css';
 
-const LanguageSelector = () => {
+const LanguageSelector = ({ variant = 'default' }) => {
     const { language, languages, changeLanguage, loading } = useLanguage();
     const [isOpen, setIsOpen] = useState(false);
     const wrapperRef = useRef(null);
@@ -36,7 +36,10 @@ const LanguageSelector = () => {
     }
 
     return (
-        <div className="language-selector-wrapper" ref={wrapperRef}>
+        <div
+            className={`language-selector-wrapper${variant === 'drawer' ? ' language-selector--drawer' : ''}`}
+            ref={wrapperRef}
+        >
             <button
                 className="language-selector-button"
                 onClick={(e) => {

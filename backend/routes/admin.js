@@ -6,7 +6,11 @@ import pool from '../config/database.js';
 import { authenticate, isAdmin } from '../middleware/auth.js';
 import { checkImageLimit } from '../utils/limitsUtils.js';
 import { checkFileSizeLimit } from '../middleware/dynamicUpload.js';
-import { listNewsBotPosts, SOURCE_CATEGORY_FILTERS } from '../services/newsBotScraper.js';
+import {
+    listNewsBotPosts,
+    listNewsBotSources,
+    getSourceCategories,
+} from '../services/newsBotScraper.js';
 import { importNewsBotArticle } from '../services/newsBotImport.js';
 
 const router = express.Router();
@@ -238,6 +242,14 @@ router.get('/dashboard', async (req, res) => {
             // bank_transfer_notifications tablosundan istatistikler (sadece order bazlı olanlar)
             let btnStats = { total: 0, pending: 0, completed: 0, failed: 0 };
             try {
+                const [btnCols] = await pool.execute(
+                    `SELECT COLUMN_NAME FROM information_schema.COLUMNS
+                     WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'bank_transfer_notifications'
+                     AND COLUMN_NAME = 'payment_request_id'`
+                );
+                const btnFilter = btnCols.length > 0
+                    ? 'WHERE (payment_request_id IS NULL OR payment_request_id = 0)'
+                    : 'WHERE order_id IS NOT NULL';
                 const [btnResults] = await pool.execute(`
                     SELECT 
                         COUNT(*) as total,
@@ -245,7 +257,7 @@ router.get('/dashboard', async (req, res) => {
                         COALESCE(SUM(CASE WHEN status = 'approved' THEN 1 ELSE 0 END), 0) as completed,
                         COALESCE(SUM(CASE WHEN status = 'rejected' THEN 1 ELSE 0 END), 0) as failed
                     FROM bank_transfer_notifications
-                    WHERE payment_request_id IS NULL
+                    ${btnFilter}
                 `);
                 btnStats = btnResults[0] || btnStats;
             } catch (e) {
@@ -399,21 +411,26 @@ router.get('/dashboard', async (req, res) => {
         let spentBalanceTotal = 0;
         try {
             // Transactions tablosunu kontrol et
-            const [spent] = await pool.execute(
-                `SELECT COALESCE(SUM(amount), 0) as total 
-                 FROM transactions 
-                 WHERE (type = 'payment' OR type = 'purchase') 
-                 AND status = 'completed'
-                 AND payment_method = 'wallet'`
+            const [txPmCol] = await pool.execute(
+                `SELECT COLUMN_NAME FROM information_schema.COLUMNS
+                 WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'transactions' AND COLUMN_NAME = 'payment_method'`
             );
-            spentBalanceTotal = spent[0]?.total || 0;
+            if (txPmCol.length > 0) {
+                const [spent] = await pool.execute(
+                    `SELECT COALESCE(SUM(ABS(amount)), 0) as total 
+                     FROM transactions 
+                     WHERE type = 'purchase' 
+                     AND status = 'completed'
+                     AND payment_method IN ('balance', 'wallet')`
+                );
+                spentBalanceTotal = spent[0]?.total || 0;
+            }
 
-            // Eğer transaction'dan sonuç gelmezse orders tablosuna bak (alternatif)
             if (spentBalanceTotal === 0) {
                 const [ordersSpent] = await pool.execute(
                     `SELECT COALESCE(SUM(final_amount), 0) as total 
                      FROM orders 
-                     WHERE payment_method = 'wallet' 
+                     WHERE payment_method IN ('balance', 'wallet') 
                      AND payment_status = 'paid'`
                 );
                 spentBalanceTotal = ordersSpent[0]?.total || 0;
@@ -1023,16 +1040,29 @@ router.put('/users/:id/status', async (req, res) => {
 router.get('/projects', async (req, res) => {
     try {
         const [projects] = await pool.execute(
-            `SELECT p.*, u.username, c.name as category_name
+            `SELECT p.id, p.title, p.slug, p.short_description, p.price, p.discount_price,
+                    p.currency, p.status, p.is_active, p.featured AS is_featured, p.completion_status,
+                    p.completion_percentage, p.created_at, p.updated_at, p.user_id, p.category_id,
+                    u.username, c.name AS category_name,
+                    (SELECT image_path FROM project_images WHERE project_id = p.id AND is_primary = 1 LIMIT 1) AS primary_image
              FROM projects p
              LEFT JOIN users u ON p.user_id = u.id
              LEFT JOIN categories c ON p.category_id = c.id
              ORDER BY p.created_at DESC`
         );
-        res.json({ projects });
+
+        const normalized = projects.map((row) => ({
+            ...row,
+            primary_image: row.primary_image ? `/uploads/${row.primary_image}` : null,
+        }));
+
+        res.json({ projects: normalized });
     } catch (error) {
         console.error('Get projects error:', error);
-        res.status(500).json({ error: 'Sunucu hatası' });
+        res.status(500).json({
+            error: 'Projeler yüklenemedi',
+            details: process.env.NODE_ENV === 'development' ? error.message : undefined,
+        });
     }
 });
 
@@ -2415,9 +2445,18 @@ router.get('/payment-requests', async (req, res) => {
             paymentRequests = [];
         }
         
-        // Bank transfer notifications (order bazlı) - payment_request_id NULL olanlar
+        // Bank transfer notifications (sipariş bazlı)
         let bankTransfers = [];
         try {
+            const [btnPrCols] = await pool.execute(
+                `SELECT COLUMN_NAME FROM information_schema.COLUMNS
+                 WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'bank_transfer_notifications'
+                 AND COLUMN_NAME = 'payment_request_id'`
+            );
+            const btnWhere = btnPrCols.length > 0
+                ? 'WHERE (btn.payment_request_id IS NULL OR btn.payment_request_id = 0)'
+                : 'WHERE btn.order_id IS NOT NULL';
+
             let bankTransferQuery = `
                 SELECT 
                     btn.id,
@@ -2442,7 +2481,7 @@ router.get('/payment-requests', async (req, res) => {
                 FROM bank_transfer_notifications btn
                 INNER JOIN orders o ON btn.order_id = o.id
                 INNER JOIN users u ON btn.user_id = u.id
-                WHERE btn.payment_request_id IS NULL
+                ${btnWhere}
             `;
 
             const bankTransferParams = [];
@@ -2796,16 +2835,22 @@ router.post('/blog/categories', async (req, res) => {
     }
 });
 
-// Haber Botu — fullprogramlarindir.net
-router.get('/blog/news-bot/categories', (_req, res) => {
-    res.json({ categories: SOURCE_CATEGORY_FILTERS });
+// Haber Botu — çoklu kaynak
+router.get('/blog/news-bot/sources', (_req, res) => {
+    res.json({ sources: listNewsBotSources() });
+});
+
+router.get('/blog/news-bot/categories', (req, res) => {
+    const source = String(req.query.source || 'fullprogramlarindir').trim();
+    res.json({ categories: getSourceCategories(source), source });
 });
 
 router.get('/blog/news-bot/list', async (req, res) => {
     try {
         const page = Math.max(1, parseInt(req.query.page, 10) || 1);
         const categoryPath = String(req.query.category || '').trim();
-        const items = await listNewsBotPosts(page, categoryPath);
+        const source = String(req.query.source || 'fullprogramlarindir').trim();
+        const items = await listNewsBotPosts(page, categoryPath, source);
 
         const [existing] = await pool.execute('SELECT title FROM blog_posts');
         const titleSet = new Set(
@@ -2817,7 +2862,7 @@ router.get('/blog/news-bot/list', async (req, res) => {
             exists: titleSet.has(item.title.trim().toLowerCase()),
         }));
 
-        res.json({ items: enriched, page, category: categoryPath });
+        res.json({ items: enriched, page, category: categoryPath, source });
     } catch (error) {
         console.error('News bot list error:', error);
         res.status(500).json({

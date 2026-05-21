@@ -151,6 +151,14 @@
     font-weight: 600;
 }
 
+.bot-filters--source {
+    margin-bottom: 0.75rem;
+}
+
+.bot-chip--source {
+    font-size: 0.78rem;
+}
+
 .bot-toolbar {
     display: flex;
     flex-wrap: wrap;

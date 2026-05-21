@@ -11,7 +11,7 @@ import Header from './components/Header';
 import Topbar from './components/Topbar';
 import Footer from './components/Footer';
 import LanguageSelectorPopup from './components/LanguageSelectorPopup';
-import { useState, useEffect, useLayoutEffect } from 'react';
+import { useState, useEffect, useLayoutEffect, Suspense } from 'react';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -29,24 +29,26 @@ import UserWallet from './pages/UserWallet';
 import UserProfile from './pages/UserProfile';
 import UserSettings from './pages/UserSettings';
 import UserDownloads from './pages/UserDownloads';
-import AdminDashboard from './pages/AdminDashboard';
-import SellerDashboard from './pages/SellerDashboard';
-import SellerProjects from './pages/SellerProjects';
-import SellerAddProject from './pages/SellerAddProject';
-import SellerEditProject from './pages/SellerEditProject';
-import SellerEarnings from './pages/SellerEarnings';
-import SellerSales from './pages/SellerSales';
-import SellerSalesDetail from './pages/SellerSalesDetail';
-import SellerOrders from './pages/SellerOrders';
-import SellerMessages from './pages/SellerMessages';
-import SellerProfile from './pages/SellerProfile';
-import SellerSettings from './pages/SellerSettings';
-import SellerFavorites from './pages/SellerFavorites';
-import SellerAnalytics from './pages/SellerAnalytics';
-import SellerCustomers from './pages/SellerCustomers';
-import SellerCoupons from './pages/SellerCoupons';
-import SellerReports from './pages/SellerReports';
-import SellerMedia from './pages/SellerMedia';
+import {
+    AdminDashboard,
+    SellerDashboard,
+    SellerProjects,
+    SellerAddProject,
+    SellerEditProject,
+    SellerEarnings,
+    SellerSales,
+    SellerSalesDetail,
+    SellerOrders,
+    SellerMessages,
+    SellerProfile,
+    SellerSettings,
+    SellerFavorites,
+    SellerAnalytics,
+    SellerCustomers,
+    SellerCoupons,
+    SellerReports,
+    SellerMedia,
+} from './routes/lazyPages';
 import Cart from './pages/Cart';
 import Subscriptions from './pages/Subscriptions';
 import Tickets from './pages/Tickets';
@@ -54,70 +56,73 @@ import Blog from './pages/Blog';
 import BlogPost from './pages/BlogPost';
 import Contact from './pages/Contact';
 import Profile from './pages/Profile';
-import AdminUsers from './pages/AdminUsers';
-import AdminProjects from './pages/AdminProjects';
-import AdminSections from './pages/AdminSections';
-import AdminSettingsGeneral from './pages/AdminSettingsGeneral';
-import AdminSettingsAPI from './pages/AdminSettingsAPI';
-import AdminSettingsContact from './pages/AdminSettingsContact';
-import AdminSettingsSocial from './pages/AdminSettingsSocial';
-import AdminSettingsModules from './pages/AdminSettingsModules';
-import AdminSettingsLimits from './pages/AdminSettingsLimits';
-import AdminSettingsMaintenance from './pages/AdminSettingsMaintenance';
 import Maintenance from './pages/Maintenance';
 import MaintenanceGuard from './components/MaintenanceGuard';
 import PageTransitionLayout from './components/PageTransitionLayout';
-import AdminSettingsEmail from './pages/AdminSettingsEmail';
-import AdminSettingsSMS from './pages/AdminSettingsSMS';
-import AdminSettingsPayment from './pages/AdminSettingsPayment';
-import AdminSettingsBackgrounds from './pages/AdminSettingsBackgrounds';
-import AdminBankAccounts from './pages/AdminBankAccounts';
-import AdminBankTransferNotifications from './pages/AdminBankTransferNotifications';
-import AdminLanguages from './pages/AdminLanguages';
-import AdminOrders from './pages/AdminOrders';
-import AdminOrderDetail from './pages/AdminOrderDetail';
-import AdminCoupons from './pages/AdminCoupons';
-import AdminTransactions from './pages/AdminTransactions';
-import AdminPaymentRequests from './pages/AdminPaymentRequests';
-import AdminWithdrawals from './pages/AdminWithdrawals';
-import AdminDonations from './pages/AdminDonations';
-import AdminSubscriptions from './pages/AdminSubscriptions';
-import AdminBlog from './pages/AdminBlog';
-import AdminBlogAdd from './pages/AdminBlogAdd';
-import AdminBlogEdit from './pages/AdminBlogEdit';
-import AdminBlogBot from './pages/AdminBlogBot';
-import AdminCategories from './pages/AdminCategories';
-import AdminHeroSlides from './pages/AdminHeroSlides';
-import AdminHeroSlidesAdd from './pages/AdminHeroSlidesAdd';
-import AdminProjectsSection from './pages/AdminProjectsSection';
-import AdminFeaturesSection from './pages/AdminFeaturesSection';
-import AdminFeaturesAdd from './pages/AdminFeaturesAdd';
-import AdminStatsSection from './pages/AdminStatsSection';
-import AdminStatsAdd from './pages/AdminStatsAdd';
-import AdminFAQSection from './pages/AdminFAQSection';
-import AdminFAQAdd from './pages/AdminFAQAdd';
-import AdminAboutSection from './pages/AdminAboutSection';
-import AdminAboutAdd from './pages/AdminAboutAdd';
-import AdminTestimonialsSection from './pages/AdminTestimonialsSection';
-import AdminTestimonialsAdd from './pages/AdminTestimonialsAdd';
-import AdminMenus from './pages/AdminMenus';
-import AdminPages from './pages/AdminPages';
-import AdminPagesAdd from './pages/AdminPagesAdd';
-import AdminPagesEdit from './pages/AdminPagesEdit';
-import AdminReferences from './pages/AdminReferences';
-import AdminSponsors from './pages/AdminSponsors';
-import AdminUsersBanned from './pages/AdminUsersBanned';
-import AdminUsersContacts from './pages/AdminUsersContacts';
-import AdminUsersBulkEmail from './pages/AdminUsersBulkEmail';
-import AdminUsersBulkSMS from './pages/AdminUsersBulkSMS';
-import AdminUsersNotificationTemplates from './pages/AdminUsersNotificationTemplates';
-import AdminAccountingPendingInvoices from './pages/AdminAccountingPendingInvoices';
-import AdminAccountingApprovedInvoices from './pages/AdminAccountingApprovedInvoices';
-import AdminInvoiceDetail from './pages/AdminInvoiceDetail';
-import AdminSupport from './pages/AdminSupport';
-import AdminLoyaltyRewards from './pages/AdminLoyaltyRewards';
-import Checkout from './pages/Checkout';
-import CheckoutWizard from './pages/CheckoutWizard';
+import ScrollToTop from './components/ScrollToTop';
+import {
+    AdminUsers,
+    AdminProjects,
+    AdminSections,
+    AdminSettingsGeneral,
+    AdminSettingsAPI,
+    AdminSettingsContact,
+    AdminSettingsSocial,
+    AdminSettingsModules,
+    AdminSettingsLimits,
+    AdminSettingsMaintenance,
+    AdminSettingsEmail,
+    AdminSettingsSMS,
+    AdminSettingsPayment,
+    AdminSettingsBackgrounds,
+    AdminBankAccounts,
+    AdminBankTransferNotifications,
+    AdminLanguages,
+    AdminOrders,
+    AdminOrderDetail,
+    AdminCoupons,
+    AdminTransactions,
+    AdminPaymentRequests,
+    AdminWithdrawals,
+    AdminDonations,
+    AdminSubscriptions,
+    AdminBlog,
+    AdminBlogAdd,
+    AdminBlogEdit,
+    AdminBlogBot,
+    AdminCategories,
+    AdminHeroSlides,
+    AdminHeroSlidesAdd,
+    AdminProjectsSection,
+    AdminFeaturesSection,
+    AdminFeaturesAdd,
+    AdminStatsSection,
+    AdminStatsAdd,
+    AdminFAQSection,
+    AdminFAQAdd,
+    AdminAboutSection,
+    AdminAboutAdd,
+    AdminTestimonialsSection,
+    AdminTestimonialsAdd,
+    AdminMenus,
+    AdminPages,
+    AdminPagesAdd,
+    AdminPagesEdit,
+    AdminReferences,
+    AdminSponsors,
+    AdminUsersBanned,
+    AdminUsersContacts,
+    AdminUsersBulkEmail,
+    AdminUsersBulkSMS,
+    AdminUsersNotificationTemplates,
+    AdminAccountingPendingInvoices,
+    AdminAccountingApprovedInvoices,
+    AdminInvoiceDetail,
+    AdminSupport,
+    AdminLoyaltyRewards,
+    Checkout,
+    CheckoutWizard,
+} from './routes/lazyPages';
 import Sales from './pages/Sales';
 import TranslationTest from './pages/TranslationTest';
 import DynamicPage from './pages/DynamicPage';
@@ -1040,6 +1045,15 @@ const AppRoutes = () => {
             />
 
             <Route
+                path="/admin/projects/new"
+                element={
+                    <PrivateRoute requireAdmin>
+                        <SellerAddProject />
+                    </PrivateRoute>
+                }
+            />
+
+            <Route
                 path="/admin/projects/:id/edit"
                 element={
                     <PrivateRoute requireAdmin>
@@ -1187,6 +1201,16 @@ const TopbarWithHeader = () => {
 const AppContent = () => {
     const location = useLocation();
     const isMaintenancePage = location.pathname === '/maintenance';
+
+    return (
+        <>
+            <ScrollToTop />
+            <AppContentInner isMaintenancePage={isMaintenancePage} location={location} />
+        </>
+    );
+};
+
+const AppContentInner = ({ isMaintenancePage, location }) => {
     const [headerScrolled, setHeaderScrolled] = useState(false);
 
     useEffect(() => {
@@ -1237,7 +1261,9 @@ function App() {
                             <ModulesProvider>
                                 <AdminLayoutProvider>
                                     <Router>
-                                        <AppContent />
+                                        <Suspense fallback={<div className="loading">Yükleniyor...</div>}>
+                                            <AppContent />
+                                        </Suspense>
                                     </Router>
                                 </AdminLayoutProvider>
                             </ModulesProvider>
