@@ -42,6 +42,11 @@ else
 fi
 
 sleep 2
-curl -sS "http://127.0.0.1:${PORT:-5000}/api/health" && echo ""
+HEALTH_PORT="${PORT:-}"
+if [ -z "$HEALTH_PORT" ] && [ -f backend/.env ]; then
+    HEALTH_PORT=$(grep -E '^PORT=' backend/.env | head -1 | cut -d= -f2 | tr -d '\r"' | tr -d ' ')
+fi
+HEALTH_PORT="${HEALTH_PORT:-5001}"
+curl -sS "http://127.0.0.1:${HEALTH_PORT}/api/health" && echo ""
 
 echo "=== Guncelleme tamam ==="

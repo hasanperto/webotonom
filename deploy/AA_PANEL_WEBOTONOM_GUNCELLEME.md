@@ -47,6 +47,7 @@ Script: PM2 durdur → `git pull` → frontend `npm ci` + `build` → backend `n
 | Değişken | Değer |
 |----------|--------|
 | `NODE_ENV` | `production` |
+| `PORT` | `5001` |
 | `FRONTEND_URL` | `https://webotonom.de` |
 | `CORS_ORIGIN` | `https://webotonom.de,https://www.webotonom.de` |
 
@@ -98,7 +99,7 @@ pm2 save
 
 ## 6. Nginx
 
-Genelde değiştirme. **Website** → `webotonom.de` → **Config** — `proxy_pass` → `127.0.0.1:5000` (veya `.env` içindeki `PORT`).
+Genelde değiştirme. **Website** → `webotonom.de` → **Config** — `proxy_pass` → `127.0.0.1:5001` (`backend/.env` → `PORT=5001` ile aynı).
 
 ```bash
 curl -sS https://webotonom.de/api/health
