@@ -47,7 +47,7 @@ Script: PM2 durdur → `git pull` → frontend `npm ci` + `build` → backend `n
 | Değişken | Değer |
 |----------|--------|
 | `NODE_ENV` | `production` |
-| `PORT` | `5001` |
+| `PORT` | `5001` (degistirmeyin) |
 | `FRONTEND_URL` | `https://webotonom.de` |
 | `CORS_ORIGIN` | `https://webotonom.de,https://www.webotonom.de` |
 
@@ -68,7 +68,7 @@ chmod -R 775 public/uploads
 cd /www/wwwroot/webotonom.de
 
 pm2 list
-pm2 stop webotonom          # kendi PM2 adın
+pm2 stop tekno              # veya pm2 list ile gercek ad
 
 git pull origin main
 
@@ -79,7 +79,7 @@ cd ../backend
 npm ci --omit=dev
 NODE_ENV=production node scripts/sunucu-hazirlik.js
 
-pm2 restart webotonom
+pm2 restart tekno
 pm2 save
 ```
 
@@ -99,7 +99,7 @@ pm2 save
 
 ## 6. Nginx
 
-Genelde değiştirme. **Website** → `webotonom.de` → **Config** — `proxy_pass` → `127.0.0.1:5001` (`backend/.env` → `PORT=5001` ile aynı).
+Genelde değiştirme. **Website** → `webotonom.de` → **Config** — `proxy_pass` → `127.0.0.1:5001`.
 
 ```bash
 curl -sS https://webotonom.de/api/health
@@ -132,7 +132,7 @@ Yeni çeviri SQL dosyaları: önce DB yedeği, sonra phpMyAdmin.
 cd PROJE_KOK/backend
 npm ci --omit=dev
 NODE_ENV=production node scripts/sunucu-hazirlik.js
-pm2 restart webotonom
+pm2 restart tekno
 ```
 
 ---
@@ -148,13 +148,52 @@ Manuel:
 
 ```bash
 cd /www/wwwroot/webotonom.de
-pm2 stop webotonom
+pm2 stop tekno
 git pull origin main
 cd frontend && npm ci --legacy-peer-deps && npm run build
 cd ../backend && npm ci --omit=dev && NODE_ENV=production node scripts/sunucu-hazirlik.js
-pm2 restart webotonom && pm2 save
+pm2 restart tekno && pm2 save
 curl -sS https://webotonom.de/api/health
 ```
+
+---
+
+## Port çakışması — 5001 dolu (port degistirmeyin)
+
+`PORT=5001` kalsin. Sorun: **aynı portta iki baslatma** (aaPanel Node projesi + PM2, veya eski zombie surec).
+
+```bash
+ss -tlnp | grep ':5001 '
+lsof -i :5001
+pm2 list
+```
+
+**1) Cift Node projesini kaldir**
+
+- aaPanel → **Website** → `webotonom.de` → **Node Project** varsa: ya **sil** ya da **Stop** (PM2 ile tek baslatma yeterli).
+- Sadece terminal PM2 kullan: `pm2 start deploy/ecosystem.config.cjs` (ad: `tekno`).
+
+**2) 5001’i tutan eski sureci durdur**
+
+PID `ss`/`lsof` ciktisindan gelir. Kendi `tekno` degilse:
+
+```bash
+pm2 delete tekno 2>/dev/null
+kill $(lsof -t -i:5001) 2>/dev/null   # dikkat: baska canli siteyse once ss ile kontrol
+cd /www/wwwroot/webotonom.de
+pm2 start deploy/ecosystem.config.cjs
+pm2 save
+curl -sS http://127.0.0.1:5001/api/health
+```
+
+**3) `.env` kontrol**
+
+```bash
+grep ^PORT= /www/wwwroot/webotonom.de/backend/.env
+# PORT=5001 olmali
+```
+
+Nginx: `proxy_pass http://127.0.0.1:5001;` — port numarasini degistirme.
 
 ---
 
@@ -162,7 +201,8 @@ curl -sS https://webotonom.de/api/health
 
 | Belirti | Çözüm |
 |---------|--------|
+| Port already occupied | Yukarı: aaPanel Node + PM2 cifti; 5001’deki eski PID |
 | `unstable_now` / boş sayfa | `git pull`, `frontend` içinde `npm run build`, Ctrl+F5 |
-| 502 Bad Gateway | `pm2 list`, `pm2 logs webotonom --lines 50` |
+| 502 Bad Gateway | `pm2 list`, `pm2 logs tekno --lines 50`, `curl 127.0.0.1:PORT/api/health` |
 | DB hatası | `backend/.env` DB bilgileri, `sunucu-hazirlik.js` |
 | Eski arayüz | Build bitmedi veya CDN/tarayıcı önbelleği |
