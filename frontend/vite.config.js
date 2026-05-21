@@ -7,21 +7,27 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
+        // React ekosistemi tek chunk'ta olmali. Diger paketleri Vite/Rollup
+        // otomatik bolsun — manuel bolme TDZ ("Cannot access 'X' before
+        // initialization") ve "unstable_now" hatalarina yol aciyordu.
         manualChunks(id) {
           if (!id.includes('node_modules')) return;
-          if (id.includes('framer-motion')) return 'motion';
           if (id.includes('@tiptap') || id.includes('prosemirror')) return 'editor';
-          // react + react-dom + scheduler ayni chunk'ta olmali (ayri vendor = unstable_now hatasi)
+          if (id.includes('framer-motion')) return 'motion';
           if (
             /[/\\]react[/\\]/.test(id) ||
             /[/\\]react-dom[/\\]/.test(id) ||
             /[/\\]scheduler[/\\]/.test(id) ||
             id.includes('react-router') ||
-            id.includes('use-sync-external-store')
+            id.includes('react-helmet-async') ||
+            id.includes('react-select') ||
+            id.includes('react-icons') ||
+            id.includes('use-sync-external-store') ||
+            id.includes('@emotion') ||
+            id.includes('@floating-ui')
           ) {
             return 'react-vendor';
           }
-          return 'vendor';
         },
       },
     },
